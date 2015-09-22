@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "Utility.h"
+
 /******************************************************************************
                                     Defines
 ******************************************************************************/
@@ -37,8 +39,8 @@
 #define bsICOD1   (2)
 #define bsICOD0   (1)
 
-#define bmOPMOD  (_BV(bsOPMOD2)|_BV(bsOPMOD1)|_BV(bsOPMOD0))
-#define bmICOD   (_BV(bsICOD2)|_BV(bsICOD1)|_BV(bsICOD0))
+#define bmOPMOD  (BIT(bsOPMOD2)|BIT(bsOPMOD1)|BIT(bsOPMOD0))
+#define bmICOD   (BIT(bsICOD2)|BIT(bsICOD1)|BIT(bsICOD0))
 
 /*****************************************************************************/
 /**
@@ -53,11 +55,11 @@
 #define bsCLKPRE1  (1)
 #define bsCLKPRE0  (0)
 
-#define bmREQOP   (_BV(bsREQOP2)|_BV(bsREQOP1)|_BV(bsREQOP0))
-#define bmABAT    (_BV(bsABAT))
-#define bmOSM     (_BV(bsOSM))
-#define bmCLKEN   (_BV(bsCLKEN))
-#define bmCLKPRE  (_BV(bsCLKPRE1)|_BV(bsCLKPRE0)
+#define bmREQOP   (BIT(bsREQOP2)|BIT(bsREQOP1)|BIT(bsREQOP0))
+#define bmABAT    (BIT(bsABAT))
+#define bmOSM     (BIT(bsOSM))
+#define bmCLKEN   (BIT(bsCLKEN))
+#define bmCLKPRE  (BIT(bsCLKPRE1)|BIT(bsCLKPRE0)
 
 
 /******************************************************************************

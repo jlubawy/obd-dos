@@ -117,7 +117,7 @@ SPI_init( void )
     }
 
     SPCR = 0x00;
-    SPCR |= _BV(MSTR);
+    SPCR |= BIT(MSTR);
 
     SPSR = 0x00;
 
@@ -137,10 +137,10 @@ SPI_startTransaction( SPI_Port_t port )
     mode = portDescriptors[port].mode;
 
     /* Setup SPI hardware for this port */
-    SPSR |= (doubleSpeed[port] << SPI2X) & _BV(SPI2X);
-    SPCR |= (rateSel[port] << SPR0) & (_BV(SPR1)|_BV(SPR0));
-    SPCR |= (mode << CPHA) & (_BV(CPOL)|_BV(CPHA)) ;
-    SPCR |= _BV(SPE);
+    SPSR |= (doubleSpeed[port] << SPI2X) & BIT(SPI2X);
+    SPCR |= (rateSel[port] << SPR0) & (BIT(SPR1)|BIT(SPR0));
+    SPCR |= (mode << CPHA) & (BIT(CPOL)|BIT(CPHA)) ;
+    SPCR |= BIT(SPE);
 
     /* Assert chip-select */
     digitalWrite( portDescriptors[port].csnPin, LOW );
@@ -157,7 +157,7 @@ SPI_endTransaction( SPI_Port_t port )
     digitalWrite( portDescriptors[port].csnPin, HIGH );
 
     /* Disable SPI hardware */
-    SPCR &= ~( _BV(SPE) );
+    SPCR &= ~( BIT(SPE) );
 }
 
 
@@ -170,7 +170,7 @@ SPI_transfer( void* buffer, size_t length )
 
     for ( i = 0; i < length; i++ ) {
         SPDR = b[i];
-        while (!(SPSR & _BV(SPIF)));
+        while (!(SPSR & BIT(SPIF)));
         b[i] = SPDR;
     }
 }
