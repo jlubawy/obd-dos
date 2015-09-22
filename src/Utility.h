@@ -1,5 +1,5 @@
 /**
- * LED.h - LED drivers for the OBD-Dos platform
+ * Utility.h - Utility macros for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,39 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _LED_H_
-#define _LED_H_
+#ifndef _UTILITY_H_
+#define _UTILITY_H_
 
 /******************************************************************************
-                                     Types
+                                     Macros
 ******************************************************************************/
 /*****************************************************************************/
-typedef enum {
-    LED_GREEN_0  = 0,
-    LED_GREEN_1,
-
-    LED_NUM_OF_COLORS,
-} LED_Color_t;
+#define DIM( _array )  (sizeof((_array)) / sizeof((_array)[0]))
 
 
-/******************************************************************************
-                                   Functions
-******************************************************************************/
-/*****************************************************************************/
-void
-LED_init( void );
-
-/*****************************************************************************/
-void
-LED_turnOn( LED_Color_t color );
-
-/*****************************************************************************/
-void
-LED_turnOff( LED_Color_t color );
-
-/*****************************************************************************/
-void
-LED_toggle( LED_Color_t color );
-
-
-#endif /* _LED_H_ */
+#endif /* _UTILITY_H_ */
