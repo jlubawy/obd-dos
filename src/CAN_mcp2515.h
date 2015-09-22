@@ -23,6 +23,42 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/******************************************************************************
+                                    Defines
+******************************************************************************/
+/*****************************************************************************/
+/**
+ * CANSTAT (0x0E)
+ */
+#define bsOPMOD2  (7)
+#define bsOPMOD1  (6)
+#define bsOPMOD0  (5)
+#define bsICOD2   (3)
+#define bsICOD1   (2)
+#define bsICOD0   (1)
+
+#define bmOPMOD  (_BV(bsOPMOD2)|_BV(bsOPMOD1)|_BV(bsOPMOD0))
+#define bmICOD   (_BV(bsICOD2)|_BV(bsICOD1)|_BV(bsICOD0))
+
+/*****************************************************************************/
+/**
+ * CANCTRL (0x0F)
+ */
+#define bsREQOP2   (7)
+#define bsREQOP1   (6)
+#define bsREQOP0   (5)
+#define bsABAT     (4)
+#define bsOSM      (3)
+#define bsCLKEN    (2)
+#define bsCLKPRE1  (1)
+#define bsCLKPRE0  (0)
+
+#define bmREQOP   (_BV(bsREQOP2)|_BV(bsREQOP1)|_BV(bsREQOP0))
+#define bmABAT    (_BV(bsABAT))
+#define bmOSM     (_BV(bsOSM))
+#define bmCLKEN   (_BV(bsCLKEN))
+#define bmCLKPRE  (_BV(bsCLKPRE1)|_BV(bsCLKPRE0)
+
 
 /******************************************************************************
                                      Types

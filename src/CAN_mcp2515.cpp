@@ -145,9 +145,10 @@ CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length )
 CAN_Mcp2515_OperatingMode_t
 CAN_mcp2515_getOperatingMode( void )
 {
-    uint8_t data = 0x00;
+    uint8_t data;
+
     CAN_mcp2515_instRead( CAN_MCP2515_REG_CANSTAT, &data, sizeof(data) );
-    return (CAN_Mcp2515_OperatingMode_t)((data >> 5) & 0x7);
+    return (CAN_Mcp2515_OperatingMode_t)((data & bmOPMOD) >> bsOPMOD0);
 }
 
 
@@ -155,6 +156,10 @@ CAN_mcp2515_getOperatingMode( void )
 void
 CAN_mcp2515_setOperatingMode( CAN_Mcp2515_OperatingMode_t mode )
 {
-    uint8_t data = (mode & 0x7) << 5;
+    uint8_t data;
+
+    CAN_mcp2515_instRead( CAN_MCP2515_REG_CANCTRL, &data, sizeof(data) );
+    data &= ~bmOPMOD;
+    data |= (mode << bsOPMOD0);
     CAN_mcp2515_instWrite( CAN_MCP2515_REG_CANCTRL, &data, sizeof(data) );
 }
