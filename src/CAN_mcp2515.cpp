@@ -44,6 +44,28 @@
 
 
 /******************************************************************************
+                                Local Functions
+******************************************************************************/
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_readByte( uint8_t address )
+{
+    uint8_t data;
+
+    CAN_mcp2515_instRead( address, &data, sizeof(data) );
+    return data;
+}
+
+
+/*****************************************************************************/
+void
+CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
+{
+    CAN_mcp2515_instWrite( address, &data, sizeof(data) );
+}
+
+
+/******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
@@ -99,6 +121,20 @@ CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length )
 
 
 /*****************************************************************************/
+void
+CAN_mcp2515_instBitModify( uint8_t address, uint8_t mask, uint8_t data )
+{
+    CAN_MCP2515_INST_START( BIT_MODIFY );
+
+    SPI_sendByte( address );
+    SPI_sendByte( mask );
+    SPI_sendByte( data );
+
+    CAN_MCP2515_INST_STOP();
+}
+
+
+/*****************************************************************************/
 CAN_Mcp2515_OperatingMode_t
 CAN_mcp2515_getOperatingMode( void )
 {
@@ -120,3 +156,52 @@ CAN_mcp2515_setOperatingMode( CAN_Mcp2515_OperatingMode_t mode )
     data |= (mode << bsOPMOD0);
     CAN_mcp2515_instWrite( CAN_MCP2515_REG_CANCTRL, &data, sizeof(data) );
 }
+
+
+/*****************************************************************************/
+void
+CAN_mcp2515_disableInterrupts( void )
+{
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_CANINTE, 0 );
+}
+
+
+/*****************************************************************************/
+void
+CAN_mcp2515_enableInterrupts( uint8_t mask )
+{
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_CANINTE, mask );
+}
+
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getInterruptFlags( void )
+{
+    return CAN_mcp2515_readByte( CAN_MCP2515_REG_CANINTF );
+}
+
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getTxErrorCount( void )
+{
+    return CAN_mcp2515_readByte( CAN_MCP2515_REG_TEC );
+}
+
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getRxErrorCount( void )
+{
+    return CAN_mcp2515_readByte( CAN_MCP2515_REG_REC );
+}
+
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getErrorFlags( void )
+{
+    return CAN_mcp2515_readByte( CAN_MCP2515_REG_EFLG );
+}
+
