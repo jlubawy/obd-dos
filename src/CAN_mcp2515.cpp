@@ -28,7 +28,6 @@
     SPI_startTransaction( SPI_PORT_CAN_BUS ); \
     SPI_sendByte( CAN_MCP2515_INST_ ## _inst ); \
 }
-
 #define CAN_MCP2515_INST_STOP()  SPI_endTransaction( SPI_PORT_CAN_BUS )
 
 
@@ -36,48 +35,6 @@
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
-typedef enum {
-    CAN_MCP2515_INST_RESET             = 0xC0,
-    CAN_MCP2515_INST_READ              = 0x03,
-    CAN_MCP2515_INST_READ_RX_BUFFER_0  = 0x90,
-    CAN_MCP2515_INST_READ_RX_BUFFER_1  = 0x92,
-    CAN_MCP2515_INST_READ_RX_BUFFER_2  = 0x94,
-    CAN_MCP2515_INST_READ_RX_BUFFER_3  = 0x96,
-    CAN_MCP2515_INST_WRITE             = 0x02,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_0  = 0x40,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_1  = 0x41,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_2  = 0x42,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_3  = 0x43,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_4  = 0x44,
-    CAN_MCP2515_INST_LOAD_TX_BUFFER_5  = 0x45,
-    CAN_MCP2515_INST_RTS_TXB0          = 0x81,
-    CAN_MCP2515_INST_RTS_TXB1          = 0x82,
-    CAN_MCP2515_INST_RTS_TXB2          = 0x83,
-    CAN_MCP2515_INST_READ_STATUS       = 0xA0,
-    CAN_MCP2515_INST_RX_STATUS         = 0xB0,
-    CAN_MCP2515_INST_BIT_MODIFY        = 0x05,
-} CAN_Mcp2515_Inst_t;
-
-/*****************************************************************************/
-typedef enum {
-    CAN_MCP2515_REG_BFPCTRL    = 0x0C,
-    CAN_MCP2515_REG_TXRTSCTRL  = 0x0D,
-    CAN_MCP2515_REG_CANSTAT    = 0x0E,
-    CAN_MCP2515_REG_CANCTRL    = 0x0F,
-    CAN_MCP2515_REG_TEC        = 0x1C,
-    CAN_MCP2515_REG_REC        = 0x1D,
-    CAN_MCP2515_REG_CNF3       = 0x28,
-    CAN_MCP2515_REG_CNF2       = 0x29,
-    CAN_MCP2515_REG_CNF1       = 0x2A,
-    CAN_MCP2515_REG_CANINTE    = 0x2B,
-    CAN_MCP2515_REG_CANINTF    = 0x2C,
-    CAN_MCP2515_REG_EFLG       = 0x2D,
-    CAN_MCP2515_REG_TXB0CTRL   = 0x30,
-    CAN_MCP2515_REG_TXB1CTRL   = 0x40,
-    CAN_MCP2515_REG_TXB2CTRL   = 0x50,
-    CAN_MCP2515_REG_RXB0CTRL   = 0x60,
-    CAN_MCP2515_REG_RXB1CTRL   = 0x70,
-} CAN_Mcp2515_Reg_t;
 
 
 /******************************************************************************
