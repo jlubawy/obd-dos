@@ -17,20 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "CAN_mcp2515.h"
 #include "Event.h"
-#include "Event_LED.h"
-#include "Log.h"
+#include "GPS.h"
+#include "OBD.h"
+#include "Serial.h"
 #include "SPI.h"
+#include "WDT.h"
 
 /******************************************************************************
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
 enum {
-    EVENT_GROUP_LED,
+    EVENT_GROUP_OBD,
 };
 
 
@@ -49,18 +51,15 @@ unsigned long green1 = 500UL;
 void
 setup( void )
 {
-    CAN_Mcp2515_OperatingMode_t mode;
+    WDT_init();
 
-    SPI_init();
-    Log_init();
+    Serial_init();
+    GPS_init();
+    OBD_init();
 
+    /* Initialize the event loop and start the watchdog timer */
     Event_init();
-    Event_LED_init();
-
-    CAN_mcp2515_init();
-
-    mode = CAN_mcp2515_getOperatingMode();
-    Log_printf( "mode: 0x%02X\n", mode );
+    WDT_enable( WDT_MAX_TIMEOUT );
 }
 
 
@@ -68,6 +67,7 @@ setup( void )
 void
 loop( void )
 {
+
     Event_t event;
     EventId_t id;
 
@@ -75,8 +75,8 @@ loop( void )
         id = Event_getId( event );
 
         switch ( Event_getGroup( event ) ) {
-            case EVENT_GROUP_LED: {
-                Event_LED_handler( id );
+            case EVENT_GROUP_OBD: {
+                //OBD_event_handler( id );
                 break;
             }
 
@@ -86,13 +86,5 @@ loop( void )
         }
     }
 
-    if ( (millis() - green0) > 500 ) {
-        Event_enqueue( EVENT_GROUP_LED, EVENT_ID_LED_GREEN_0 );
-        green0 = millis();
-    }
-
-    if ( (millis() - green1) > 500 ) {
-        Event_enqueue( EVENT_GROUP_LED, EVENT_ID_LED_GREEN_1 );
-        green1 = millis();
-    }
+    WDT_reset(); /* reset the WDT in every loop */
 }

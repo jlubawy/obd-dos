@@ -201,7 +201,18 @@ typedef enum {
 /*****************************************************************************/
 /* Source: https://en.wikipedia.org/wiki/OBD-II_PIDs#Mode_09 */
 typedef enum {
-    OBD_MODE_09_UNDEFINED
+    OBD_MODE_09_PID_SUPPORTED_01_20     = 0x00,  /* Mode 9 supported PIDs (01 to 20) */
+    OBD_MODE_09_PID_VIN_MSG_COUNT       = 0x01,  /* VIN Message Count in PID 02 */
+    OBD_MODE_09_PID_VIN                 = 0x02,  /* Vehicle Identification Number (VIN) */
+    OBD_MODE_09_PID_CAL_ID_MSG_COUNT    = 0x03,  /* Calibration ID message count for PID 04 */
+    OBD_MODE_09_PID_CAL_ID              = 0x04,  /* Calibration ID */
+    // OBD_MODE_09_PID_  = 0x05,  /* Calibration verification numbers (CVN) */
+    // OBD_MODE_09_PID_  = 0x06,  /* Calibration Verification Numbers (CVN) */
+    // OBD_MODE_09_PID_  = 0x07,  /* In-use performance tracking message count for PID 08 and 0B */
+    // OBD_MODE_09_PID_  = 0x08,  /* In-use performance tracking for spark ignition vehicles */
+    OBD_MODE_09_PID_ECU_NAME_MSG_COUNT  = 0x09,  /* ECU name message count for PID 0A */
+    OBD_MODE_09_PID_ECU_NAME            = 0x0A,  /* ECU name */
+    // OBD_MODE_09_PID_  = 0x0B,  /* In-use performance tracking for compression ignition vehicles */
 } ODB_Mode_09_Pid_t;
 
 

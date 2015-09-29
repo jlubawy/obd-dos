@@ -1,5 +1,5 @@
 /**
- * Assert.h - Assert function for the OBD-Dos platform
+ * Serial.cpp - UART drivers for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,22 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _ASSERT_H_
-#define _ASSERT_H_
+#include "Serial.h"
 
 /******************************************************************************
-                                     Macros
+                                Local Variables
 ******************************************************************************/
 /*****************************************************************************/
-#if defined( NDEBUG )
-#define ASSERT( _cond )
-#else
-#define ASSERT( _cond ) { \
-    if ( !(_cond) ) { \
-        Assert_func( __func__, __LINE__ ); \
-    } \
+static FILE g_uartFile = {0};
+
+
+/******************************************************************************
+                                Local Functions
+******************************************************************************/
+/*****************************************************************************/
+static int uart_putchar( char c, FILE* stream )
+{
+    Serial.write(c);
+    return 0 ;
 }
-#endif
 
 
 /******************************************************************************
@@ -40,7 +42,24 @@
 ******************************************************************************/
 /*****************************************************************************/
 void
-Assert_func( const char* func, unsigned int line );
+Serial_init()
+{
+    fdev_setup_stream( &g_uartFile, uart_putchar, NULL, _FDEV_SETUP_WRITE );
+    Serial.begin( 115200, SERIAL_8N1 );
+    stdout = &g_uartFile;
+}
 
 
-#endif /* _ASSERT_H_ */
+/*****************************************************************************/
+void
+Serial_flush( void )
+{
+    Serial.flush();
+}
+
+
+/*****************************************************************************/
+void Serial_write( const char c )
+{
+    Serial.write(c);
+}

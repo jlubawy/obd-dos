@@ -1,5 +1,5 @@
 /**
- * Assert.cpp - Assert function for the OBD-Dos platform
+ * Error.h - Error functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,21 +17,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Assert.h"
-#include "Error.h"
-#include "Serial.h"
+#ifndef _ERROR_H_
+#define _ERROR_H_
+
+#include <stdint.h>
+
+/******************************************************************************
+                                     Types
+******************************************************************************/
+/*****************************************************************************/
+enum {
+    SUCCESS        = 0,
+    ERROR_FAILURE  = 1,
+    ERROR_ASSERT   = 2,
+};
+
+typedef uint8_t Error_t;
+
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
 void
-Assert_func( const char* func, unsigned int line )
-{
-    /* Print the error */
-    Serial_printf( "Assertion failed: %s:%u\n", func, line );
+Error_halt( Error_t code );
 
-    /* Halt the program */
-    Error_halt( ERROR_ASSERT );
-}
+/*****************************************************************************/
+void
+Error_reset( Error_t code );
 
+
+#endif /* _ERROR_H_ */

@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "Assert.h"
 #include "LED.h"

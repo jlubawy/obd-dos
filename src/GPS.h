@@ -58,43 +58,43 @@ typedef double GPS_Altitude_t;
 ******************************************************************************/
 /*****************************************************************************/
 void
-GPS_init();
+GPS_init( void );
 
 /*****************************************************************************/
 void
-GPS_update();
+GPS_update( void );
 
 /*****************************************************************************/
 bool
-GPS_getLocation(GPS_Location_t* location);
+GPS_getLocation( GPS_Location_t* location );
 
 /*****************************************************************************/
 bool
-GPS_getDate(GPS_Date_t* date);
+GPS_getDate( GPS_Date_t* date );
 
 /*****************************************************************************/
 bool
-GPS_getTime(GPS_Time_t* time);
+GPS_getTime( GPS_Time_t* time );
 
 /*****************************************************************************/
 bool
-GPS_getSpeedMph(GPS_Speed_t* speed);
+GPS_getSpeedMph( GPS_Speed_t* speed );
 
 /*****************************************************************************/
 bool
-GPS_getCourseDegrees(GPS_Course_t* degrees);
+GPS_getCourseDegrees( GPS_Course_t* degrees );
 
 /*****************************************************************************/
 bool
-GPS_getAltitudeFeet(GPS_Altitude_t* altitude);
+GPS_getAltitudeFeet( GPS_Altitude_t* altitude );
 
 /*****************************************************************************/
 bool
-GPS_getNumberOfSatellites(uint32_t* value);
+GPS_getNumberOfSatellites( uint32_t* value );
 
 /*****************************************************************************/
 bool
-GPS_getHDOP(uint32_t* value);
+GPS_getHDOP( uint32_t* value );
 
 
 #endif /* _GPS_H_ */

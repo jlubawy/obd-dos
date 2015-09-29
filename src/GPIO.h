@@ -1,5 +1,5 @@
 /**
- * Assert.h - Assert function for the OBD-Dos platform
+ * GPIO.h - GPIO functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,22 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _ASSERT_H_
-#define _ASSERT_H_
+#ifndef _GPIO_H_
+#define _GPIO_H_
+
+#include <stdint.h>
 
 /******************************************************************************
-                                     Macros
+                                     Types
 ******************************************************************************/
 /*****************************************************************************/
-#if defined( NDEBUG )
-#define ASSERT( _cond )
-#else
-#define ASSERT( _cond ) { \
-    if ( !(_cond) ) { \
-        Assert_func( __func__, __LINE__ ); \
-    } \
-}
-#endif
+typedef uint8_t GPIO_Id_t;
+
+/*****************************************************************************/
+typedef enum {
+    GPIO_PULL_NONE,
+    GPIO_PULL_UP,
+} GPIO_Pull_t;
+
+/*****************************************************************************/
+typedef enum {
+    GPIO_INT_NONE,
+    GPIO_INT_RISING,
+    GPIO_INT_FALLING,
+} GPIO_Int_t;
+
+/*****************************************************************************/
+typedef void (*GPIO_Callback_t)(void);
 
 
 /******************************************************************************
@@ -40,7 +50,26 @@
 ******************************************************************************/
 /*****************************************************************************/
 void
-Assert_func( const char* func, unsigned int line );
+GPIO_init( void );
+
+/*****************************************************************************/
+void
+GPIO_configInput( GPIO_Id_t       id,
+                  GPIO_Pull_t     pullType,
+                  GPIO_Int_t      intType,
+                  GPIO_Callback_t callback );
+
+/*****************************************************************************/
+void
+GPIO_configOutput( GPIO_Id_t id );
+
+/*****************************************************************************/
+void
+GPIO_outputHigh( GPIO_Id_t id );
+
+/*****************************************************************************/
+void
+GPIO_outputLow( GPIO_Id_t id );
 
 
-#endif /* _ASSERT_H_ */
+#endif /* _GPIO_H_ */

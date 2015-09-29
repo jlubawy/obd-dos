@@ -1,5 +1,5 @@
 /**
- * Log.h - UART logging functions for the OBD-Dos platform
+ * Interrupts.cpp - Interrupt control functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,38 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _LOG_H_
-#define _LOG_H_
+#ifndef _INTERRUPTS_H_
+#define _INTERRUPTS_H_
 
-#include <Arduino.h>
-#include <avr/pgmspace.h>
-#include <stdio.h>
-
-/* Store format strings in flash memory */
-#define APP_ENABLE_LOGGING
-#ifdef APP_ENABLE_LOGGING
-#define Log_printf(fmt, ...) { \
-    printf_P(PSTR(fmt), __VA_ARGS__); \
-    Log_flush(); \
-}
-#else
-#define Log_printf(fmt, ...)
-#endif
+#include <stdint.h>
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
-void
-Log_init();
+uint8_t
+Interrupts_criticalSectionEnter( void );
 
 /*****************************************************************************/
 void
-Log_flush();
-
-/*****************************************************************************/
-void
-Log_write(const char c);
+Interrupts_criticalSectionExit( uint8_t sreg );
 
 
-#endif /* _LOG_H_ */
+#endif /* _INTERRUPTS_H_ */

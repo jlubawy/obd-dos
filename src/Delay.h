@@ -1,5 +1,5 @@
 /**
- * Assert.cpp - Assert function for the OBD-Dos platform
+ * Delay.h - Delay functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,21 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Assert.h"
-#include "Error.h"
-#include "Serial.h"
+#ifndef _DELAY_H_
+#define _DELAY_H_
+
+#include <stdint.h>
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
 void
-Assert_func( const char* func, unsigned int line )
-{
-    /* Print the error */
-    Serial_printf( "Assertion failed: %s:%u\n", func, line );
+Delay_us( uint32_t delayUs );
 
-    /* Halt the program */
-    Error_halt( ERROR_ASSERT );
-}
+/*****************************************************************************/
+void
+Delay_ms( uint32_t delayMs );
 
+
+#endif /* _DELAY_H_ */

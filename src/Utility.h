@@ -20,6 +20,8 @@
 #ifndef _UTILITY_H_
 #define _UTILITY_H_
 
+#include "Interrupts.h"
+
 /******************************************************************************
                                      Macros
 ******************************************************************************/
@@ -28,6 +30,10 @@
 
 /*****************************************************************************/
 #define DIM( _array )  (sizeof((_array)) / sizeof((_array)[0]))
+
+/*****************************************************************************/
+#define CRITICAL_SECTION_ENTER()        Interrupts_criticalSectionEnter()
+#define CRITICAL_SECTION_EXIT( _sreg )  Interrupts_criticalSectionExit(_sreg)
 
 
 #endif /* _UTILITY_H_ */

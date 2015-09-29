@@ -72,6 +72,8 @@ CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
 void
 CAN_mcp2515_init( void )
 {
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
 }
 
 

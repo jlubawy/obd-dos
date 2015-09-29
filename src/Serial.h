@@ -1,5 +1,5 @@
 /**
- * Log.cpp - UART logging functions for the OBD-Dos platform
+ * Serial.h - UART drivers for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,48 +17,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Log.h"
+#ifndef _SERIAL_H_
+#define _SERIAL_H_
 
-/******************************************************************************
-                                Local Variables
-******************************************************************************/
-static FILE uartout = {0};
+#include <stdio.h>
 
+#include <avr/pgmspace.h>
 
-/******************************************************************************
-                                Local Functions
-******************************************************************************/
-/*****************************************************************************/
-static int uart_putchar(char c, FILE* stream)
-{
-    Serial.write(c);
-    return 0 ;
-}
-
+#include <Arduino.h>
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
 void
-Log_init()
-{
-    fdev_setup_stream(&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
-    Serial.begin(115200, SERIAL_8N1);
-    stdout = &uartout;
-}
-
+Serial_init( void );
 
 /*****************************************************************************/
 void
-Log_flush()
-{
-    Serial.flush();
-}
-
+Serial_flush( void );
 
 /*****************************************************************************/
-void Log_write(const char c)
-{
-    Serial.write(c);
+void
+Serial_write( const char c );
+
+/*****************************************************************************/
+#define Serial_printf( fmt, ... ) { \
+    printf_P( PSTR(fmt), __VA_ARGS__ ); \
+    Serial_flush(); \
 }
+
+
+#endif /* _SERIAL_H_ */

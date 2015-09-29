@@ -23,15 +23,6 @@
 /******************************************************************************
                                      Types
 ******************************************************************************/
-typedef enum {
-    OBD_SUPPORTED_PIDS_01_20,
-    OBD_SUPPORTED_PIDS_21_40,
-    OBD_SUPPORTED_PIDS_41_60,
-    OBD_SUPPORTED_PIDS_61_80,
-    OBD_SUPPORTED_PIDS_81_A0,
-    OBD_SUPPORTED_PIDS_A1_C0,
-    OBD_SUPPORTED_PIDS_C1_E0,
-} OBD_Supported_PIDs_t;
 
 
 /******************************************************************************

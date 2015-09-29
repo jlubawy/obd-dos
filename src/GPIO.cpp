@@ -1,5 +1,5 @@
 /**
- * LED.cpp - LED drivers for the OBD-Dos platform
+ * GPIO.cpp - GPIO functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,44 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <stdint.h>
+#include <stdlib.h>
 
 #include <Arduino.h>
 
 #include "Assert.h"
-#include "LED.h"
+#include "GPIO.h"
+
+/******************************************************************************
+                                    Defines
+******************************************************************************/
+/*****************************************************************************/
+
 
 /******************************************************************************
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
-typedef enum {
-    LED_OFF  = LOW,
-    LED_ON   = HIGH,
-} LED_State_t;
-
-/*****************************************************************************/
-typedef struct {
-    LED_Color_t color;
-    uint8_t     pin;
-    LED_State_t currentState;
-} LED_Info_t;
 
 
 /******************************************************************************
                                 Local Variables
 ******************************************************************************/
 /*****************************************************************************/
-static const LED_Info_t ledInfo[ LED_NUM_OF_COLORS ] = {
-    { LED_GREEN_0, 7, LED_OFF },
-    { LED_GREEN_1, 8, LED_OFF },
-};
-
-/*****************************************************************************/
-static const unsigned int ledInfoCount = sizeof(ledInfo) / sizeof(ledInfo[0]);
-
-/*****************************************************************************/
-static LED_State_t ledStates[ LED_NUM_OF_COLORS ];
 
 
 /******************************************************************************
@@ -62,54 +47,45 @@ static LED_State_t ledStates[ LED_NUM_OF_COLORS ];
 ******************************************************************************/
 /*****************************************************************************/
 void
-LED_init( void )
-{
-    LED_allOff();
-}
+GPIO_init( void )
+{}
 
 
 /*****************************************************************************/
 void
-LED_allOff( void )
+GPIO_configInput( GPIO_Id_t       id,
+                  GPIO_Pull_t     pullType,
+                  GPIO_Int_t      intType,
+                  GPIO_Callback_t callback )
 {
-    int i;
+    pinMode( id, ( pullType == GPIO_PULL_NONE ) ? INPUT : INPUT_PULLUP );
 
-    for ( i = 0; i < ledInfoCount; i++ ) {
-        pinMode( ledInfo[i].pin, OUTPUT );
-        ledStates[i] = LED_OFF;
-        digitalWrite( ledInfo[i].pin, LED_OFF );
+    if ( intType != GPIO_INT_NONE ) {
+        ASSERT( callback != NULL );
+        attachInterrupt( digitalPinToInterrupt(id), callback, intType );
     }
 }
 
 
 /*****************************************************************************/
 void
-LED_turnOn( LED_Color_t color )
+GPIO_configOutput( GPIO_Id_t id )
 {
-    ASSERT( color < ledInfoCount );
-
-    ledStates[color] = LED_ON;
-    digitalWrite( ledInfo[color].pin, LED_ON );
+    pinMode( id, OUTPUT );
 }
 
 
 /*****************************************************************************/
 void
-LED_turnOff( LED_Color_t color )
+GPIO_outputHigh( GPIO_Id_t id )
 {
-    ASSERT( color < ledInfoCount );
-
-    ledStates[color] = LED_OFF;
-    digitalWrite( ledInfo[color].pin, LED_OFF );
+    digitalWrite( id, HIGH );
 }
 
 
 /*****************************************************************************/
 void
-LED_toggle( LED_Color_t color )
+GPIO_outputLow( GPIO_Id_t id )
 {
-    ASSERT( color < ledInfoCount );
-
-    ledStates[color] = ( LED_ON == ledStates[color] ) ? LED_OFF : LED_ON;
-    digitalWrite( ledInfo[color].pin, ledStates[color] );
+    digitalWrite( id, LOW );
 }

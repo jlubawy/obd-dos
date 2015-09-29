@@ -1,5 +1,5 @@
 /**
- * Assert.cpp - Assert function for the OBD-Dos platform
+ * WDT.cpp - Watchdog timer driver for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,21 +17,59 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Assert.h"
-#include "Error.h"
-#include "Serial.h"
+#include <avr/wdt.h>
+
+#include "WDT.h"
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
 void
-Assert_func( const char* func, unsigned int line )
+WDT_init( void )
 {
-    /* Print the error */
-    Serial_printf( "Assertion failed: %s:%u\n", func, line );
-
-    /* Halt the program */
-    Error_halt( ERROR_ASSERT );
+    WDT_disable();
 }
 
+
+/*****************************************************************************/
+void
+WDT_enable( uint8_t timeout )
+{
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+    wdt_reset();
+    MCUSR &= ~BIT(WDRF);
+    WDTCSR |= BIT(WDCE)|BIT(WDE);
+    WDTCSR = BIT(WDE)|(timeout);
+    CRITICAL_SECTION_EXIT(sreg);
+}
+
+
+/*****************************************************************************/
+void
+WDT_disable( void )
+{
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+    wdt_reset();
+    MCUSR &= ~BIT(WDRF);
+    WDTCSR |= BIT(WDCE)|BIT(WDE);
+    WDTCSR = 0;
+    CRITICAL_SECTION_EXIT(sreg);
+}
+
+
+/*****************************************************************************/
+void
+WDT_reset( void )
+{
+    wdt_reset();
+}
+
+
+/*****************************************************************************/
+void
+WDT_forceSystemReset( void )
+{
+    WDT_enable( WDT_MIN_TIMEOUT );
+    while (1);  /* wait for system reset */
+}
