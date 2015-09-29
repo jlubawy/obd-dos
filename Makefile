@@ -97,7 +97,7 @@ CORE_CPP_OBJS = $(addprefix $(OBJ_DIR)/,$(notdir $(CORE_CPP_PREREQS:.cpp=.cpp.o)
 # Application Recipes
 ################################################################################
 APP_DIR = src
-APP_TARGET = ObdApp
+APP_TARGET = OBD-Dos
 APP_TARGET_ELF = $(addprefix $(BIN_DIR)/,$(addsuffix .elf,$(APP_TARGET)))
 APP_TARGET_EEP = $(addprefix $(BIN_DIR)/,$(addsuffix .eep,$(APP_TARGET)))
 APP_TARGET_HEX = $(addprefix $(BIN_DIR)/,$(addsuffix .hex,$(APP_TARGET)))
