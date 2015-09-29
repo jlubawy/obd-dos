@@ -22,9 +22,8 @@
 
 #include <stdio.h>
 
-#include <avr/pgmspace.h>
-
 #include <Arduino.h>
+#include <avr/pgmspace.h>
 
 /******************************************************************************
                                    Functions
@@ -42,9 +41,13 @@ void
 Serial_write( const char c );
 
 /*****************************************************************************/
-#define Serial_printf( fmt, ... ) { \
-    printf_P( PSTR(fmt), __VA_ARGS__ ); \
-    Serial_flush(); \
+#define Serial_printf( _fmt, ... ) { \
+    printf_P( PSTR( _fmt ), __VA_ARGS__ ); \
+}
+
+/*****************************************************************************/
+#define Serial_error( _fmt, ... ) { \
+    Serial_printf( "[ERROR]: " _fmt, __VA_ARGS__ ); \
 }
 
 

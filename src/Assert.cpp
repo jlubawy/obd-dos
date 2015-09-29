@@ -29,7 +29,7 @@ void
 Assert_func( const char* func, unsigned int line )
 {
     /* Print the error */
-    Serial_printf( "Assertion failed: %s:%u\n", func, line );
+    Serial_error( "Assertion failure in function '%s' line %u\n", func, line );
 
     /* Halt the program */
     Error_halt( ERROR_ASSERT );

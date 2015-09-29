@@ -28,6 +28,7 @@
 /*****************************************************************************/
 #define ERROR_LONG_BLINK_MS   (1000)
 #define ERROR_SHORT_BLINK_MS  (500)
+#define ERROR_LED_ID          (LED_GREEN_0)
 
 
 /******************************************************************************
@@ -37,15 +38,19 @@
 static void
 Error_blinkCode( Error_t code )
 {
-    /* 0->1 , 1->2, etc. */
-    code = code + 1;
+    /* Long pause */
+    Delay_ms( ERROR_LONG_BLINK_MS );
 
-    do {
-        LED_toggle( LED_GREEN_0 );
+    /* Blink fast */
+    for ( code = code + 1; code > 0; code-- ) {
+        LED_turnOn( ERROR_LED_ID );
         Delay_ms( ERROR_SHORT_BLINK_MS );
-        LED_toggle( LED_GREEN_0 );
+        LED_turnOff( ERROR_LED_ID );
         Delay_ms( ERROR_SHORT_BLINK_MS );
-    } while ( code-- );
+
+        /* Reset watchdog */
+        WDT_reset();
+    }
 }
 
 
@@ -56,12 +61,14 @@ Error_blinkCode( Error_t code )
 void
 Error_halt( Error_t code )
 {
+    /* Set watchdog to max timeout */
+    WDT_enable( WDT_TIMEOUT_MAX );
+
     LED_allOff();
 
     /* Blink the error code (+1) in the following sequence:
      *    long pause -> blink fast -> long pause -> ... */
     while (1) {
-        Delay_ms( ERROR_LONG_BLINK_MS );
         Error_blinkCode( code );
     }
 }

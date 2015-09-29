@@ -70,6 +70,6 @@ WDT_reset( void )
 void
 WDT_forceSystemReset( void )
 {
-    WDT_enable( WDT_MIN_TIMEOUT );
+    WDT_enable( WDT_TIMEOUT_MIN );
     while (1);  /* wait for system reset */
 }

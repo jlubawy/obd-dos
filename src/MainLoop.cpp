@@ -19,6 +19,7 @@
 
 #include <Arduino.h>
 
+#include "Assert.h"
 #include "CAN_mcp2515.h"
 #include "Event.h"
 #include "GPS.h"
@@ -59,7 +60,9 @@ setup( void )
 
     /* Initialize the event loop and start the watchdog timer */
     Event_init();
-    WDT_enable( WDT_MAX_TIMEOUT );
+    WDT_enable( WDT_TIMEOUT_MAX );
+
+    ASSERT( false );
 }
 
 
@@ -67,7 +70,6 @@ setup( void )
 void
 loop( void )
 {
-
     Event_t event;
     EventId_t id;
 
@@ -86,5 +88,5 @@ loop( void )
         }
     }
 
-    WDT_reset(); /* reset the WDT in every loop */
+    WDT_reset(); /* reset the WDT in every loop to prevent system reset */
 }
