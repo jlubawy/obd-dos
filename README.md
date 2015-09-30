@@ -51,3 +51,13 @@ How to Build & Install Firmware (Windows)
 3. ```mingw32-make``` to build
 4. ```mingw32-make install``` to download to Arduino Uno (change COM_PORT in Makefile for your system)
 
+
+Firmware 1.0.0 Requirements
+---------------------------
+
+- [x] EM-506 GPS receiver drivers
+- [ ] MCP2515 CAN controller drivers
+- [ ] OBD-II drivers
+- [x] Serial Bluetooth drivers
+- [ ] Application code to collect and output sensor data
+
