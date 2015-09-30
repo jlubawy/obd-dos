@@ -41,3 +41,13 @@ Arduino Port Mapping
 * D11 - MCP2515 MOSI
 * D12 - MCP2515 MISO
 * D13 - MCP2515 CLK
+
+
+How to Build & Install Firmware (Windows)
+-----------------------------------------
+
+1. Install latest version of [Arduino software](https://www.arduino.cc/en/Main/Software) (for Arduino and AVR libraries)
+2. Install latest version of [MinGW](http://www.mingw.org/)
+3. ```mingw32-make``` to build
+4. ```mingw32-make install``` to download to Arduino Uno (change COM_PORT in Makefile for your system)
+
