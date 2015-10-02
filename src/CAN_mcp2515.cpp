@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "Assert.h"
 #include "CAN_mcp2515.h"
 #include "SPI.h"
+#include "Utility.h"
 
 /******************************************************************************
                                      Macros
@@ -74,6 +76,78 @@ CAN_mcp2515_init( void )
 {
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
+}
+
+
+/*****************************************************************************/
+bool
+CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size )
+{
+    uint8_t i;
+    uint8_t offset;
+    uint8_t txbnctrl;
+    bool bufferAvailable = false;
+
+    /* Sanity check the size */
+    ASSERT( size <= 8 );
+
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+
+    /* Find the first available TX buffer starting from the top. If we set all priority fields
+     * the same then the buffer with the highest number has highest priority. This creates
+     * a FIFO priority order for the buffers. */
+    for ( i = CAN_MCP2515_NUM_OF_TX_BUFFERS; i > 0; i-- ) {
+        offset = 0x10 * (i - 1);
+        txbnctrl = CAN_mcp2515_readByte( CAN_MCP2515_REG_TXB0CTRL + offset );
+
+        if ( (txbnctrl & bmTXREQ) == 0 ) {
+            bufferAvailable = true;
+            break;
+        }
+    }
+
+    if ( !bufferAvailable ) {
+        /* No TX buffer was available */
+        return false;
+    }
+
+    /* Disable all RTS pins (for all buffers) */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXRTSCTRL,
+        0
+    );
+
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0SIDH + offset,
+        ((( id & 0x7F8 ) >> 3) << bsSID3)
+    );
+
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0SIDL + offset,
+        (( id & 0x7 ) << bsSID0)
+    );
+
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0DLC + offset,
+        ( size << bsDLC0 )
+    );
+
+    for ( i = 0; i < size; i++ ) {
+        CAN_mcp2515_writeByte(
+            CAN_MCP2515_REG_TXB0D0 + offset,
+            ((uint8_t *)buf)[i]
+        );
+    }
+
+    /* Set the priority and initiate the transfer */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0CTRL + offset,
+        ( 1 << bsTXREQ ) | ( 3 << bsTXP0 )
+    );
+
+    CRITICAL_SECTION_EXIT( sreg );
+
+    return true;
 }
 
 

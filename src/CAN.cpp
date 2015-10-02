@@ -18,11 +18,9 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 
-#include <Arduino.h>
-
-#include "Assert.h"
-#include "LED.h"
+#include "CAN_mcp2515.h"
 
 /******************************************************************************
                                      Types
@@ -43,5 +41,14 @@
 void
 CAN_init( void )
 {
-
+    CAN_mcp2515_init();
 }
+
+
+/*****************************************************************************/
+bool
+CAN_sendStandardDataFrame( uint16_t id, void* buf, size_t size )
+{
+    return CAN_mcp2515_sendStandardDataFrame( id, buf, size );
+}
+

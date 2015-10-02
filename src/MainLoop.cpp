@@ -20,7 +20,7 @@
 #include <Arduino.h>
 
 #include "Assert.h"
-#include "CAN_mcp2515.h"
+#include "CAN.h"
 #include "Event.h"
 #include "GPS.h"
 #include "OBD.h"
@@ -56,13 +56,19 @@ setup( void )
 
     Serial_init();
     GPS_init();
+
+
+    SPI_init();
+    CAN_init();
+
+    uint8_t data = 0xCC;
+    CAN_sendStandardDataFrame( 0x1234, &data, sizeof(data) );
+
     OBD_init();
 
     /* Initialize the event loop and start the watchdog timer */
     Event_init();
     WDT_enable( WDT_TIMEOUT_MAX );
-
-    ASSERT( false );
 }
 
 

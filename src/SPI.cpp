@@ -20,6 +20,7 @@
 #include <Arduino.h>
 
 #include "Assert.h"
+#include "Serial.h"
 #include "SPI.h"
 #include "Utility.h"
 
@@ -36,8 +37,8 @@
 ******************************************************************************/
 /*****************************************************************************/
 typedef struct {
-    uint32_t clockFreq;
-    uint8_t csnPin;
+    uint32_t   clockFreq;
+    uint8_t    csnPin;
     SPI_Mode_t mode;
 } SPI_Descriptor_t;
 
@@ -64,32 +65,33 @@ static uint8_t doubleSpeed[ SPI_NUM_PORTS ];
                                 Local Functions
 ******************************************************************************/
 /*****************************************************************************/
+/* Adapted from SPI.h in Arduino SPI library */
 static void
 SPI_calcDivider( SPI_Port_t port )
 {
-    uint8_t clockFreq = portDescriptors[port].clockFreq;
-    uint8_t clockDiv = clockFreq / F_CPU;
+    uint32_t clockFreq = portDescriptors[port].clockFreq;
+    uint8_t clockDiv;
 
-    /* Check that the clock speed is attainable */
-    ASSERT( clockDiv >= 2 && clockDiv <= 128 );
-
-    if ( clockDiv >= 128 ) {
-        rateSel[port] = 3;
-        doubleSpeed[port] = 0;
-    } else if ( clockDiv >= 32 ) {
-        rateSel[port] = 2;
-        doubleSpeed[port] = ( clockDiv >= 64 ) ? 0 : 1;
-    } else if ( clockDiv >= 8 ) {
-        rateSel[port] = 1;
-        doubleSpeed[port] = ( clockDiv >= 16 ) ? 0 : 1;
-    } else if ( clockDiv >= 2 ) {
-        rateSel[port] = 0;
-        doubleSpeed[port] = ( clockDiv >= 4 ) ? 0 : 1;
+    if ( clockFreq >= F_CPU / 2 ) {
+        clockDiv = 0;
+    } else if ( clockFreq >= F_CPU / 4 ) {
+        clockDiv = 1;
+    } else if ( clockFreq >= F_CPU / 8 ) {
+        clockDiv = 2;
+    } else if ( clockFreq >= F_CPU / 16 ) {
+        clockDiv = 3;
+    } else if ( clockFreq >= F_CPU / 32 ) {
+        clockDiv = 4;
+    } else if ( clockFreq >= F_CPU / 64 ) {
+        clockDiv = 5;
     } else {
-        /* choose safe values by default */
-        rateSel[port] = 3;
-        doubleSpeed[port] = 0;
+        clockDiv = 7;
     }
+
+    clockDiv ^= 0x1;
+
+    rateSel[port] = clockDiv >> 1;
+    doubleSpeed[port] = clockDiv;
 }
 
 

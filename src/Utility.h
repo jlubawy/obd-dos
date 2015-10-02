@@ -35,5 +35,8 @@
 #define CRITICAL_SECTION_ENTER()        Interrupts_criticalSectionEnter()
 #define CRITICAL_SECTION_EXIT( _sreg )  Interrupts_criticalSectionExit(_sreg)
 
+/*****************************************************************************/
+#define REG8( _address )        Interrupts_criticalSectionEnter()
+
 
 #endif /* _UTILITY_H_ */

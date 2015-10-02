@@ -36,14 +36,14 @@
 #define bsMLOA   (5)
 #define bsTXERR  (4)
 #define bsTXREQ  (3)
-#define bsTXB1   (1)
-#define bsTXB0   (0)
+#define bsTXP1   (1)
+#define bsTXP0   (0)
 
 #define bmABTF   (BIT(bsABTF))
 #define bmMLOA   (BIT(bsMLOA))
 #define bmTXERR  (BIT(bsTXERR))
 #define bmTXREQ  (BIT(bsTXREQ))
-#define bmTXB    (BIT(bsTXB1)|BIT(bsTXB0))
+#define bmTXP    (BIT(bsTXP1)|BIT(bsTXP0))
 
 /*****************************************************************************/
 /**
@@ -417,6 +417,20 @@
 #define bmOPMOD  (BIT(bsOPMOD2)|BIT(bsOPMOD1)|BIT(bsOPMOD0))
 #define bmICOD   (BIT(bsICOD2)|BIT(bsICOD1)|BIT(bsICOD0))
 
+/*****************************************************************************/
+#define CAN_MCP2515_NUM_OF_TX_BUFFERS  (3)
+#define CAN_MCP2515_NUM_OF_RX_BUFFERS  (2)
+
+
+/******************************************************************************
+                                     Macros
+******************************************************************************/
+/*****************************************************************************/
+#define CAN_MCP2515_WRITE_REG( _regName, _data )  (CAN_mcp2515_writeByte( CAN_MCP2515_REG_ ## _regName, _data ))
+
+/*****************************************************************************/
+#define CAN_MCP2515_READ_REG( _regName )   (CAN_mcp2515_readByte( CAN_MCP2515_REG_ ## _regName ))
+
 
 /******************************************************************************
                                      Types
@@ -610,6 +624,10 @@ typedef enum {
 /*****************************************************************************/
 void
 CAN_mcp2515_init( void );
+
+/*****************************************************************************/
+bool
+CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size );
 
 /*****************************************************************************/
 void
