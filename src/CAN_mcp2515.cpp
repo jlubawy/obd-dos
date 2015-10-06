@@ -74,6 +74,7 @@ CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
 void
 CAN_mcp2515_init( void )
 {
+    SPI_init();
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
 }
@@ -88,7 +89,8 @@ CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size )
     uint8_t txbnctrl;
     bool bufferAvailable = false;
 
-    /* Sanity check the size */
+    /* Sanity check the ID and size */
+    ASSERT( id < 0x800 );
     ASSERT( size <= 8 );
 
     uint8_t sreg = CRITICAL_SECTION_ENTER();
@@ -117,24 +119,118 @@ CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size )
         0
     );
 
+    /* SID<10:3> */
     CAN_mcp2515_writeByte(
         CAN_MCP2515_REG_TXB0SIDH + offset,
         ((( id & 0x7F8 ) >> 3) << bsSID3)
     );
 
+    /* SID<2:0> */
     CAN_mcp2515_writeByte(
         CAN_MCP2515_REG_TXB0SIDL + offset,
         (( id & 0x7 ) << bsSID0)
     );
 
+    /* DLC<3:0> */
     CAN_mcp2515_writeByte(
         CAN_MCP2515_REG_TXB0DLC + offset,
         ( size << bsDLC0 )
     );
 
+    /* Data buffers */
     for ( i = 0; i < size; i++ ) {
         CAN_mcp2515_writeByte(
-            CAN_MCP2515_REG_TXB0D0 + offset,
+            CAN_MCP2515_REG_TXB0D0 + offset + i,
+            ((uint8_t *)buf)[i]
+        );
+    }
+
+    /* Set the priority and initiate the transfer */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0CTRL + offset,
+        ( 1 << bsTXREQ ) | ( 3 << bsTXP0 )
+    );
+
+    CRITICAL_SECTION_EXIT( sreg );
+
+    return true;
+}
+
+
+/*****************************************************************************/
+bool
+CAN_mcp2515_sendExtendedDataFrame( uint32_t id, void* buf, size_t size )
+{
+    uint8_t i;
+    uint8_t offset;
+    uint8_t txbnctrl;
+    bool bufferAvailable = false;
+
+    /* Sanity check the ID and size */
+    ASSERT( id < 0x20000000 );
+    ASSERT( size <= 8 );
+
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+
+    /* Find the first available TX buffer starting from the top. If we set all priority fields
+     * the same then the buffer with the highest number has highest priority. This creates
+     * a FIFO priority order for the buffers. */
+    for ( i = CAN_MCP2515_NUM_OF_TX_BUFFERS; i > 0; i-- ) {
+        offset = 0x10 * (i - 1);
+        txbnctrl = CAN_mcp2515_readByte( CAN_MCP2515_REG_TXB0CTRL + offset );
+
+        if ( (txbnctrl & bmTXREQ) == 0 ) {
+            bufferAvailable = true;
+            break;
+        }
+    }
+
+    if ( !bufferAvailable ) {
+        /* No TX buffer was available */
+        return false;
+    }
+
+    /* Disable all RTS pins (for all buffers) */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXRTSCTRL,
+        0
+    );
+
+    /* SID<10:3> = EID<28:21> */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0SIDH + offset,
+        ((( id & 0x1FE00000 ) >> 21) << bsSID3)
+    );
+
+    /* SID<2:0> = EID<20:18>
+     *            EID<17:16> */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0SIDL + offset,
+        ((( id & 0x1C0000 ) >> 18) << bsSID0) | (bmEXIDE) | ((( id & 0x30000 ) >> 16) << bsEID16)
+    );
+
+    /* EID<15:8> */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0EID8 + offset,
+        ((( id & 0xFF00 ) >> 8) << bsEID8)
+    );
+
+    /* EID<7:0> */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0EID0 + offset,
+        (( id & 0xFF ) << bsEID8)
+    );
+
+    /* DLC<3:0> */
+    CAN_mcp2515_writeByte(
+        CAN_MCP2515_REG_TXB0DLC + offset,
+        ( size << bsDLC0 )
+    );
+
+    /* Data buffers */
+    for ( i = 0; i < size; i++ ) {
+        CAN_mcp2515_writeByte(
+            CAN_MCP2515_REG_TXB0D0 + offset + i,
             ((uint8_t *)buf)[i]
         );
     }

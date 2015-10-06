@@ -1,5 +1,5 @@
 /**
- * OBD.cpp - OBD-II functions for the OBD-Dos platform
+ * OBD.h - OBD-II functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,9 +20,20 @@
 #ifndef _OBD_H_
 #define _OBD_H_
 
+#include <stdint.h>
+
 /******************************************************************************
                                      Types
 ******************************************************************************/
+/*****************************************************************************/
+typedef union {
+    struct {
+        uint8_t wmi[3];
+        uint8_t vds[6];
+        uint8_t vis[8];
+    };
+    uint8_t all[17];
+} OBD_VIN_t;
 
 
 /******************************************************************************
@@ -31,6 +42,18 @@
 /*****************************************************************************/
 void
 OBD_init( void );
+
+/*****************************************************************************/
+void
+OBD_getSupportedPids( void );
+
+/*****************************************************************************/
+uint8_t
+OBD_getVehicleSpeed( void );
+
+/*****************************************************************************/
+void
+OBD_requestVin( OBD_VIN_t* vin );
 
 
 #endif /* _OBD_H_ */

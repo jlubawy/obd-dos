@@ -20,6 +20,8 @@
 #ifndef _UTILITY_H_
 #define _UTILITY_H_
 
+#include <stdint.h>
+
 #include "Interrupts.h"
 
 /******************************************************************************

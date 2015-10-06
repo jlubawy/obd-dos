@@ -52,3 +52,11 @@ CAN_sendStandardDataFrame( uint16_t id, void* buf, size_t size )
     return CAN_mcp2515_sendStandardDataFrame( id, buf, size );
 }
 
+
+/*****************************************************************************/
+bool
+CAN_sendExtendedDataFrame( uint32_t id, void* buf, size_t size )
+{
+    return CAN_mcp2515_sendExtendedDataFrame( id, buf, size );
+}
+

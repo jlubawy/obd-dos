@@ -19,31 +19,20 @@
 
 #include <Arduino.h>
 
-#include "Assert.h"
-#include "CAN.h"
-#include "Event.h"
 #include "GPS.h"
 #include "OBD.h"
 #include "Serial.h"
-#include "SPI.h"
 #include "WDT.h"
 
 /******************************************************************************
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
-enum {
-    EVENT_GROUP_OBD,
-};
-
 
 /******************************************************************************
                                 Local Variables
 ******************************************************************************/
 /*****************************************************************************/
-unsigned long green0 = 0UL;
-unsigned long green1 = 500UL;
-
 
 /******************************************************************************
                                    Functions
@@ -56,18 +45,11 @@ setup( void )
 
     Serial_init();
     GPS_init();
-
-
-    SPI_init();
-    CAN_init();
-
-    uint8_t data = 0xCC;
-    CAN_sendStandardDataFrame( 0x1234, &data, sizeof(data) );
-
     OBD_init();
 
-    /* Initialize the event loop and start the watchdog timer */
-    Event_init();
+    OBD_requestVin( NULL );
+
+    /* Start the watchdog timer */
     WDT_enable( WDT_TIMEOUT_MAX );
 }
 
@@ -76,23 +58,5 @@ setup( void )
 void
 loop( void )
 {
-    Event_t event;
-    EventId_t id;
-
-    if ( event = Event_dequeue() ) {
-        id = Event_getId( event );
-
-        switch ( Event_getGroup( event ) ) {
-            case EVENT_GROUP_OBD: {
-                //OBD_event_handler( id );
-                break;
-            }
-
-            default: {
-                break;
-            }
-        }
-    }
-
     WDT_reset(); /* reset the WDT in every loop to prevent system reset */
 }

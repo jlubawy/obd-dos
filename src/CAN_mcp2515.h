@@ -630,6 +630,10 @@ bool
 CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size );
 
 /*****************************************************************************/
+bool
+CAN_mcp2515_sendExtendedDataFrame( uint32_t id, void* buf, size_t size );
+
+/*****************************************************************************/
 void
 CAN_mcp2515_instReset( void );
 

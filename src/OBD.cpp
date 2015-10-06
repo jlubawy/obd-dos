@@ -18,8 +18,10 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 
 #include "Assert.h"
+#include "CAN.h"
 #include "OBD.h"
 #include "OBD_pids.h"
 
@@ -77,17 +79,6 @@ typedef enum {
     OBD_MODE_0A_PERMANENT_DIAGNOSTIC_TROUBLE_CODES  = 0x0A,
 } OBD_Mode_t;
 
-/*****************************************************************************/
-typedef enum {
-    OBD_SUPPORTED_PIDS_01_20,
-    OBD_SUPPORTED_PIDS_21_40,
-    OBD_SUPPORTED_PIDS_41_60,
-    OBD_SUPPORTED_PIDS_61_80,
-    OBD_SUPPORTED_PIDS_81_A0,
-    OBD_SUPPORTED_PIDS_A1_C0,
-    OBD_SUPPORTED_PIDS_C1_E0,
-} OBD_Supported_PIDs_t;
-
 
 /******************************************************************************
                                 Local Variables
@@ -119,15 +110,14 @@ OBD_sendSingleFrameRequest( uint8_t* buffer, uint8_t size )
 void
 OBD_init( void )
 {
-
+    CAN_init();
 }
 
 
 /*****************************************************************************/
 void
-OBD_getSupportedPids( OBD_Supported_PIDs_t pid )
+OBD_getSupportedPids( void )
 {
-
 }
 
 
@@ -141,14 +131,18 @@ OBD_getVehicleSpeed( void )
 
 /*****************************************************************************/
 void
-OBD_requestVin( void )
+OBD_requestVin( OBD_VIN_t* vin )
 {
     uint8_t txBuffer[8];
     const uint8_t size = 2;
+
+    memset( txBuffer, 0, sizeof(txBuffer) );
 
     txBuffer[0] = (size << 4) | (OBD_FRAME_TYPE_SINGLE);
     txBuffer[1] = OBD_MODE_09_REQUEST_VEHICLE_INFORMATION;
     txBuffer[2] = OBD_MODE_09_PID_VIN;
 
-
+    CAN_sendStandardDataFrame( OBD_11BIT_FUNC_BCAST_ADDR,
+                               txBuffer,
+                               sizeof(txBuffer) );
 }
