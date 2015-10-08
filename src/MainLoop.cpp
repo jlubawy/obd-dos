@@ -149,7 +149,9 @@ loop( void )
 
         /* Output sampled data to serial port */
         Serial_printf(
-            "%u,%04u-%02u-%02uT%02u:%02u:%02uZ00:00,%u,%f,%f,%f,%f,%u,%f\n",
+            "%lu,%u,%04u-%02u-%02uT%02u:%02u:%02uZ00:00,%u,%f,%f,%f,%f,%u,%f\n",
+
+            GPS_getNumOfSatellites(),
 
             gpsDateTimeValid,
             g_sampledDateTime.year,

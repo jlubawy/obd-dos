@@ -73,6 +73,18 @@ GPS_update( void )
 
 
 /*****************************************************************************/
+uint32_t
+GPS_getNumOfSatellites( void )
+{
+    if ( gps.satellites.isValid() ) {
+        return gps.satellites.value();
+    }
+
+    return 0;
+}
+
+
+/*****************************************************************************/
 bool
 GPS_isUtcDateTimeValid( void )
 {
