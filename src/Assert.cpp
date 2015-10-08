@@ -28,10 +28,12 @@
 void
 Assert_func( const char* func, unsigned int line )
 {
+#ifndef NDEBUG
     /* Print the error */
     Serial_error( "Assertion failure in function '%s' line %u\n", func, line );
 
     /* Halt the program */
     Error_halt( ERROR_ASSERT );
+#endif /* NDEBUG */
 }
 

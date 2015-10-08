@@ -116,6 +116,37 @@ OBD_init( void )
 
 /*****************************************************************************/
 void
+OBD_update( void )
+{
+}
+
+
+/*****************************************************************************/
+bool
+OBD_isDataValid( void )
+{
+    return false;
+}
+
+
+/*****************************************************************************/
+bool
+OBD_getData( OBD_Data_t* data )
+{
+    bool valid;
+
+    if ( valid = OBD_isDataValid() ) {
+        /* TODO: Populate data */
+    } else {
+        memset( data, 0, sizeof(OBD_Data_t) );
+    }
+
+    return valid;
+}
+
+
+/*****************************************************************************/
+void
 OBD_getSupportedPids( void )
 {
 }

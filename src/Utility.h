@@ -40,5 +40,10 @@
 /*****************************************************************************/
 #define REG8( _address )        Interrupts_criticalSectionEnter()
 
+/*****************************************************************************/
+#define PACKED_START
+#define PACKED_END
+#define PACKED()      (__attribute__ ((packed)))
+
 
 #endif /* _UTILITY_H_ */

@@ -1,5 +1,5 @@
 /**
- * OBD.h - OBD-II functions for the OBD-Dos platform
+ * EEPROM.h - EEPROM drivers for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,28 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _OBD_H_
-#define _OBD_H_
+#ifndef _NVM_H_
+#define _NVM_H_
 
 #include <stdint.h>
+
+#include "Error.h"
+#include "GPS.h"
 
 /******************************************************************************
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
-typedef union {
-    double speedMph;
-} OBD_Data_t;
+enum {
+    NVM_RESET_REASON_NORMAL  = 0x00,
+    NVM_RESET_REASON_ERROR   = 0x01,
+};
 
-/*****************************************************************************/
-typedef union {
-    struct {
-        uint8_t wmi[3];
-        uint8_t vds[6];
-        uint8_t vis[8];
-    };
-    uint8_t all[17];
-} OBD_VIN_t;
+typedef uint8_t NVM_ResetReason_t;
 
 
 /******************************************************************************
@@ -46,31 +42,27 @@ typedef union {
 ******************************************************************************/
 /*****************************************************************************/
 void
-OBD_init( void );
-
-/*****************************************************************************/
-void
-OBD_update( void );
+NVM_setResetReason( NVM_ResetReason_t reason );
 
 /*****************************************************************************/
 bool
-OBD_isDataValid( void );
+NVM_getResetReason( NVM_ResetReason_t* reason );
+
+/*****************************************************************************/
+void
+NVM_setLastError( Error_t lastError );
+
+/*****************************************************************************/
+Error_t
+NVM_getLastError( void );
+
+/*****************************************************************************/
+void
+NVM_setNextGpsSample( GPS_TransitData_t* location );
 
 /*****************************************************************************/
 bool
-OBD_getData( OBD_Data_t* data );
-
-/*****************************************************************************/
-void
-OBD_getSupportedPids( void );
-
-/*****************************************************************************/
-uint8_t
-OBD_getVehicleSpeed( void );
-
-/*****************************************************************************/
-void
-OBD_requestVin( OBD_VIN_t* vin );
+NVM_getLastGpsSample( GPS_TransitData_t* location );
 
 
-#endif /* _OBD_H_ */
+#endif /* _NVM_H_ */

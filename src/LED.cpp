@@ -22,6 +22,7 @@
 #include <Arduino.h>
 
 #include "Assert.h"
+#include "Delay.h"
 #include "LED.h"
 
 /******************************************************************************
@@ -35,7 +36,7 @@ typedef enum {
 
 /*****************************************************************************/
 typedef struct {
-    LED_Color_t color;
+    LED_Id_t    id;
     uint8_t     pin;
     LED_State_t currentState;
 } LED_Info_t;
@@ -46,8 +47,8 @@ typedef struct {
 ******************************************************************************/
 /*****************************************************************************/
 static const LED_Info_t ledInfo[ LED_NUM_OF_COLORS ] = {
-    { LED_GREEN_0, 7, LED_OFF },
-    { LED_GREEN_1, 8, LED_OFF },
+    { LED_ID_STATUS, 7, LED_OFF },
+    { LED_ID_ERROR,  8, LED_OFF },
 };
 
 /*****************************************************************************/
@@ -84,7 +85,7 @@ LED_allOff( void )
 
 /*****************************************************************************/
 void
-LED_turnOn( LED_Color_t color )
+LED_turnOn( LED_Id_t color )
 {
     ASSERT( color < ledInfoCount );
 
@@ -95,7 +96,7 @@ LED_turnOn( LED_Color_t color )
 
 /*****************************************************************************/
 void
-LED_turnOff( LED_Color_t color )
+LED_turnOff( LED_Id_t color )
 {
     ASSERT( color < ledInfoCount );
 
@@ -106,7 +107,17 @@ LED_turnOff( LED_Color_t color )
 
 /*****************************************************************************/
 void
-LED_toggle( LED_Color_t color )
+LED_blink( LED_Id_t color, uint32_t durationMs )
+{
+    LED_turnOn( color );
+    Delay_ms( durationMs );
+    LED_turnOff( color );
+}
+
+
+/*****************************************************************************/
+void
+LED_toggle( LED_Id_t color )
 {
     ASSERT( color < ledInfoCount );
 

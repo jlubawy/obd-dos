@@ -1,5 +1,5 @@
 /**
- * OBD.h - OBD-II functions for the OBD-Dos platform
+ * EEPROM.h - EEPROM drivers for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,60 +17,38 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _OBD_H_
-#define _OBD_H_
+#ifndef _EEPROM_H_
+#define _EEPROM_H_
 
 #include <stdint.h>
+#include <stdlib.h>
 
 /******************************************************************************
                                      Types
 ******************************************************************************/
 /*****************************************************************************/
-typedef union {
-    double speedMph;
-} OBD_Data_t;
-
-/*****************************************************************************/
-typedef union {
-    struct {
-        uint8_t wmi[3];
-        uint8_t vds[6];
-        uint8_t vis[8];
-    };
-    uint8_t all[17];
-} OBD_VIN_t;
+#define EEPROM_ADDRESS_MIN  (0)
+#define EEPROM_ADDRESS_MAX  (1024)
 
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
-void
-OBD_init( void );
-
-/*****************************************************************************/
-void
-OBD_update( void );
-
-/*****************************************************************************/
-bool
-OBD_isDataValid( void );
-
-/*****************************************************************************/
-bool
-OBD_getData( OBD_Data_t* data );
-
-/*****************************************************************************/
-void
-OBD_getSupportedPids( void );
-
-/*****************************************************************************/
 uint8_t
-OBD_getVehicleSpeed( void );
+EEPROM_readByte( uint16_t address );
+
+/*****************************************************************************/
+bool
+EEPROM_writeByte( uint16_t address, uint8_t data );
 
 /*****************************************************************************/
 void
-OBD_requestVin( OBD_VIN_t* vin );
+EEPROM_read( uint16_t address, void* buf, size_t size );
+
+/*****************************************************************************/
+void
+EEPROM_write( uint16_t address, void* buf, size_t size );
 
 
-#endif /* _OBD_H_ */
+#endif /* _EEPROM_H_ */

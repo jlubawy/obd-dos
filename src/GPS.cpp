@@ -21,23 +21,30 @@
 #include <TinyGPS++.h>
 
 #include "GPS.h"
+#include "NVM.h"
 #include "Serial.h"
 
+
 /******************************************************************************
-                                     Macros
+                                     Types
 ******************************************************************************/
-#define IS_VALID(data) (gps.data.isValid())
+/*****************************************************************************/
 
 
 /******************************************************************************
                                 Local Variables
 ******************************************************************************/
+/*****************************************************************************/
 static const int rxPin = 4;
 static const int txPin = 5;
 static const uint32_t baudRate = 4800;
 static SoftwareSerial ss(rxPin, txPin);
-
 static TinyGPSPlus gps;
+static GPS_TransitData_t g_lastSampleData;
+
+/*****************************************************************************/
+static bool g_isUtcDateTimeValid = false;
+static bool g_isTransitDataValid = false;
 
 
 /******************************************************************************
@@ -48,6 +55,7 @@ void
 GPS_init( void )
 {
     ss.begin( baudRate );
+    NVM_getLastGpsSample( &g_lastSampleData );
 }
 
 
@@ -59,115 +67,89 @@ GPS_update( void )
 
     while ( ss.available() > 0 ) {
         c = ss.read();
-        gps.encode(c);
+        gps.encode( c );
     }
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getLocation( GPS_Location_t* location )
+GPS_isUtcDateTimeValid( void )
 {
-    if ( IS_VALID(location) ) {
-        location->lat = gps.location.lat();
-        location->lng = gps.location.lng();
+    if ( g_isUtcDateTimeValid ) {
         return true;
     }
 
-    return false;
+    g_isUtcDateTimeValid = gps.date.isValid() && gps.time.isValid();
+    return g_isUtcDateTimeValid;
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getDate( GPS_Date_t* date )
+GPS_isUtcDateTimeUpdated( void )
 {
-    if ( IS_VALID(date) ) {
-        date->year = gps.date.year();
-        date->month = gps.date.month();
-        date->day = gps.date.day();
-        return true;
-    }
-
-    return false;
+    return gps.date.isUpdated() && gps.time.isUpdated();
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getTime( GPS_Time_t* time )
+GPS_getUtcDateTime( GPS_UtcDateTime_t* datetime )
 {
-    if ( IS_VALID(time) ) {
-        time->hour = gps.time.hour();
-        time->minute = gps.time.minute();
-        time->second = gps.time.second();
-        return true;
+    bool valid;
+
+    if ( valid = GPS_isUtcDateTimeValid() ) {
+        datetime->year   = gps.date.year();
+        datetime->month  = gps.date.month();
+        datetime->day    = gps.date.day();
+        datetime->hour   = gps.time.hour();
+        datetime->minute = gps.time.minute();
+        datetime->second = gps.time.second();
+    } else {
+        memset( datetime, 0, sizeof(GPS_UtcDateTime_t) );
     }
 
-    return false;
+    return valid;
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getSpeedMph( GPS_Speed_t* speed )
+GPS_isTransitDataValid( void )
 {
-    if ( IS_VALID(speed) ) {
-        *speed = gps.speed.mph();
+    if ( g_isTransitDataValid ) {
         return true;
     }
 
-    return false;
+    g_isTransitDataValid = gps.location.isValid() && gps.speed.isValid() && gps.course.isValid();
+    return g_isTransitDataValid;
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getCourseDegrees( GPS_Course_t* degrees )
+GPS_isTransitDataUpdated( void )
 {
-    if ( IS_VALID(course) ) {
-        *degrees = gps.course.deg();
-        return true;
-    }
-
-    return false;
+    return gps.location.isUpdated() && gps.speed.isUpdated() && gps.course.isUpdated();
 }
 
 
 /*****************************************************************************/
 bool
-GPS_getAltitudeFeet( GPS_Altitude_t* altitude )
+GPS_getTransitData( GPS_TransitData_t* transitData )
 {
-    if ( IS_VALID(altitude) ) {
-        *altitude = gps.altitude.feet();
-        return true;
+    bool valid;
+
+    if ( valid = GPS_isTransitDataValid() ) {
+        transitData->lat      = gps.location.lat();
+        transitData->lng      = gps.location.lng();
+        transitData->speedMph = gps.speed.mph();
+        transitData->course   = gps.course.deg();
+    } else {
+        memset( transitData, 0, sizeof(GPS_TransitData_t) );
     }
 
-    return false;
+    return valid;
 }
 
-
-/*****************************************************************************/
-bool
-GPS_getNumberOfSatellites( uint32_t* value )
-{
-    if ( IS_VALID(satellites) ) {
-        *value = gps.satellites.value();
-        return true;
-    }
-
-    return false;
-}
-
-
-/*****************************************************************************/
-bool
-GPS_getHDOP( uint32_t* value )
-{
-    if ( IS_VALID(hdop) ) {
-        *value = gps.hdop.value();
-        return true;
-    }
-
-    return false;
-}

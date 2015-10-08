@@ -23,34 +23,23 @@
 /******************************************************************************
                                      Types
 ******************************************************************************/
+/*****************************************************************************/
 typedef struct {
-    bool valid;
-    bool updated;
-    bool age;
-} GPS_Status_t;
+    uint16_t year;
+    uint8_t  month;
+    uint8_t  day;
+    uint8_t  hour;
+    uint8_t  minute;
+    uint8_t  second;
+} GPS_UtcDateTime_t;
 
+/*****************************************************************************/
 typedef struct {
     double lat;
     double lng;
-} GPS_Location_t;
-
-typedef struct {
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-} GPS_Date_t;
-
-typedef struct {
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-} GPS_Time_t;
-
-typedef double GPS_Speed_t;
-
-typedef double GPS_Course_t;
-
-typedef double GPS_Altitude_t;
+    double speedMph;
+    double course;
+} GPS_TransitData_t;
 
 
 /******************************************************************************
@@ -66,35 +55,27 @@ GPS_update( void );
 
 /*****************************************************************************/
 bool
-GPS_getLocation( GPS_Location_t* location );
+GPS_isUtcDateTimeValid( void );
 
 /*****************************************************************************/
 bool
-GPS_getDate( GPS_Date_t* date );
+GPS_isUtcDateTimeUpdated( void );
 
 /*****************************************************************************/
 bool
-GPS_getTime( GPS_Time_t* time );
+GPS_getUtcDateTime( GPS_UtcDateTime_t* datetime );
 
 /*****************************************************************************/
 bool
-GPS_getSpeedMph( GPS_Speed_t* speed );
+GPS_isTransitDataValid( void );
 
 /*****************************************************************************/
 bool
-GPS_getCourseDegrees( GPS_Course_t* degrees );
+GPS_isTransitDataUpdated( void );
 
 /*****************************************************************************/
 bool
-GPS_getAltitudeFeet( GPS_Altitude_t* altitude );
-
-/*****************************************************************************/
-bool
-GPS_getNumberOfSatellites( uint32_t* value );
-
-/*****************************************************************************/
-bool
-GPS_getHDOP( uint32_t* value );
+GPS_getTransitData( GPS_TransitData_t* transitData );
 
 
 #endif /* _GPS_H_ */

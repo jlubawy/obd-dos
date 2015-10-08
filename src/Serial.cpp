@@ -45,7 +45,7 @@ void
 Serial_init()
 {
     fdev_setup_stream( &g_uartFile, uart_putchar, NULL, _FDEV_SETUP_WRITE );
-    Serial.begin( 115200, SERIAL_8N1 );
+    Serial.begin( 9600, SERIAL_8N1 );
     stdout = &g_uartFile;
 }
 

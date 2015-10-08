@@ -20,6 +20,7 @@
 #include "Delay.h"
 #include "Error.h"
 #include "LED.h"
+#include "NVM.h"
 #include "WDT.h"
 
 /******************************************************************************
@@ -28,7 +29,6 @@
 /*****************************************************************************/
 #define ERROR_LONG_BLINK_MS   (1000)
 #define ERROR_SHORT_BLINK_MS  (500)
-#define ERROR_LED_ID          (LED_GREEN_0)
 
 
 /******************************************************************************
@@ -43,9 +43,9 @@ Error_blinkCode( Error_t code )
 
     /* Blink fast */
     for ( code = code + 1; code > 0; code-- ) {
-        LED_turnOn( ERROR_LED_ID );
+        LED_turnOn( LED_ID_ERROR );
         Delay_ms( ERROR_SHORT_BLINK_MS );
-        LED_turnOff( ERROR_LED_ID );
+        LED_turnOff( LED_ID_ERROR );
         Delay_ms( ERROR_SHORT_BLINK_MS );
 
         /* Reset watchdog */
@@ -78,6 +78,9 @@ Error_halt( Error_t code )
 void
 Error_reset( Error_t code )
 {
+    NVM_setResetReason( NVM_RESET_REASON_ERROR );
+    NVM_setLastError( code );
+
     /* Force a system reset */
     WDT_forceSystemReset();
 }
