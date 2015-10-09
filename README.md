@@ -59,5 +59,5 @@ Firmware 1.0.0 Requirements
 - [ ] MCP2515 CAN controller drivers
 - [ ] OBD-II drivers
 - [x] Serial Bluetooth drivers
-- [ ] Application code to collect and output sensor data
+- [x] Application code to collect and output sensor data
 

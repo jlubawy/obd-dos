@@ -1,5 +1,5 @@
 /**
- * Assert.cpp - Assert function for the OBD-Dos platform
+ * Log.h - Logging functions for the OBD-Dos platform
  * Copyright (C) 2015 Josh Lubawy <jlubawy@gmail.com> <jlubawy@asu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,23 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Assert.h"
-#include "Error.h"
-#include "Log.h"
+#ifndef _LOG_H_
+#define _LOG_H_
+
+#include "Serial.h"
 
 /******************************************************************************
-                                   Functions
+                                     Macros
 ******************************************************************************/
 /*****************************************************************************/
-void
-Assert_func( const char* func, unsigned int line )
-{
-#ifndef NDEBUG
-    /* Print the error */
-    Log_errorf( "Assertion failure in function '%s' line %u\n", func, line );
+#define OBD_LOG_ENABLE
+#if defined( OBD_LOG_ENABLE )
+#define Log_printf( _fmt, ... )  (Serial_printf( "[INFO ]: " _fmt, __VA_ARGS__ ))
+#define Log_errorf( _fmt, ... )  (Serial_printf( "[ERROR]: " _fmt, __VA_ARGS__ ))
+#else
+#define Log_printf( _fmt, ... )
+#define Log_errorf( _fmt, ... )
+#endif
 
-    /* Halt the program */
-    Error_halt( ERROR_ASSERT );
-#endif /* NDEBUG */
-}
-
+#endif /* _LOG_H_ */

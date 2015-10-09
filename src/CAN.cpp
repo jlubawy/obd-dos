@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "CAN.h"
 #include "CAN_mcp2515.h"
 
 /******************************************************************************
@@ -32,6 +33,33 @@
                                 Local Variables
 ******************************************************************************/
 /*****************************************************************************/
+static CAN_RxCallback_t CAN_rxCallback;
+
+/*****************************************************************************/
+static CAN_ErrorCallback_t CAN_errorCallback;
+
+
+/******************************************************************************
+                                Local Functions
+******************************************************************************/
+/*****************************************************************************/
+static void
+CAN_mcp2515_rxCallback( uint32_t id, bool isExtended )
+{
+    if ( CAN_rxCallback ) {
+        CAN_rxCallback( 0, false );
+    }
+}
+
+
+/*****************************************************************************/
+static void
+CAN_mcp2515_errorCallback( CAN_Mcp2515_Error_t errorType )
+{
+    if ( CAN_errorCallback ) {
+        CAN_errorCallback( CAN_ERROR_SUCCESS );
+    }
+}
 
 
 /******************************************************************************
@@ -39,9 +67,27 @@
 ******************************************************************************/
 /*****************************************************************************/
 void
-CAN_init( void )
+CAN_init( uint8_t* rxBuf,
+          size_t   rxBufSize,
+          CAN_RxCallback_t rxCallback,
+          CAN_ErrorCallback_t errorCallback )
 {
-    CAN_mcp2515_init();
+    CAN_rxCallback = rxCallback;
+    CAN_errorCallback = errorCallback;
+
+    CAN_mcp2515_init( rxBuf,
+                      rxBufSize,
+                      CAN_mcp2515_rxCallback,
+                      CAN_mcp2515_errorCallback );
+}
+
+
+/*****************************************************************************/
+void
+CAN_reset( void )
+{
+    /* Reset and re-init the CAN controller hardware */
+    CAN_mcp2515_instReset();
 }
 
 

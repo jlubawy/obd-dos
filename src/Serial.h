@@ -45,10 +45,5 @@ Serial_write( const char c );
     printf_P( PSTR( _fmt ), __VA_ARGS__ ); \
 }
 
-/*****************************************************************************/
-#define Serial_error( _fmt, ... ) { \
-    Serial_printf( "[ERROR]: " _fmt, __VA_ARGS__ ); \
-}
-
 
 #endif /* _SERIAL_H_ */

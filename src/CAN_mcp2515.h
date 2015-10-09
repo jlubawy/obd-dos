@@ -617,13 +617,36 @@ typedef enum {
     CAN_MCP2515_OPMODE_CONFIGURATION,
 } CAN_Mcp2515_OperatingMode_t;
 
+/*****************************************************************************/
+typedef enum {
+    CAN_MCP2515_ERROR_SUCCESS = 0,
+    CAN_MCP2515_ERROR_GENERAL,
+    CAN_MCP2515_ERROR_MSG_TX,
+    CAN_MCP2515_ERROR_RECEIVER_OVERFLOW,
+    CAN_MCP2515_ERROR_RECEIVER_WARNING,
+    CAN_MCP2515_ERROR_TRANSMITTER_WARNING,
+    CAN_MCP2515_ERROR_RECEIVER_PASSIVE,
+    CAN_MCP2515_ERROR_TRANSMITTER_PASSIVE,
+    CAN_MCP2515_ERROR_BUS_OFF,
+} CAN_Mcp2515_Error_t;
+
+/*****************************************************************************/
+typedef void (*CAN_Mcp2515_RxCallback_t)( uint32_t id,
+                                          bool     isExtended );
+
+/*****************************************************************************/
+typedef void (*CAN_Mcp2515_ErrorCallback_t)( CAN_Mcp2515_Error_t errorType );
+
 
 /******************************************************************************
                                    Functions
 ******************************************************************************/
 /*****************************************************************************/
 void
-CAN_mcp2515_init( void );
+CAN_mcp2515_init( uint8_t* rxBuf,
+                  size_t   rxBufSize,
+                  CAN_Mcp2515_RxCallback_t rxCallback,
+                  CAN_Mcp2515_ErrorCallback_t errorCallback );
 
 /*****************************************************************************/
 bool
@@ -646,12 +669,40 @@ void
 CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length );
 
 /*****************************************************************************/
+void
+CAN_mcp2515_instBitModify( uint8_t address, uint8_t mask, uint8_t data );
+
+/*****************************************************************************/
 CAN_Mcp2515_OperatingMode_t
 CAN_mcp2515_getOperatingMode( void );
 
 /*****************************************************************************/
 void
 CAN_mcp2515_setOperatingMode( CAN_Mcp2515_OperatingMode_t mode );
+
+/*****************************************************************************/
+void
+CAN_mcp2515_disableInterrupts( void );
+
+/*****************************************************************************/
+void
+CAN_mcp2515_enableInterrupts( uint8_t mask );
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getInterruptFlags( void );
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getTxErrorCount( void );
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getRxErrorCount( void );
+
+/*****************************************************************************/
+uint8_t
+CAN_mcp2515_getErrorFlags( void );
 
 
 #endif /* _CAN_MCP2515_H_ */

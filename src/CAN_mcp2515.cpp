@@ -19,6 +19,7 @@
 
 #include "Assert.h"
 #include "CAN_mcp2515.h"
+#include "GPIO.h"
 #include "SPI.h"
 #include "Utility.h"
 
@@ -43,11 +44,73 @@
                                 Local Variables
 ******************************************************************************/
 /*****************************************************************************/
+static CAN_Mcp2515_RxCallback_t CAN_mcp2515_rxCallback;
+
+/*****************************************************************************/
+static CAN_Mcp2515_ErrorCallback_t CAN_mcp2515_errorCallback;
+
+/*****************************************************************************/
+static uint8_t* g_mcp2515_rxBuf;
+static size_t g_mcp2515_rxBufSize;
 
 
 /******************************************************************************
                                 Local Functions
 ******************************************************************************/
+/*****************************************************************************/
+void
+CAN_mcp2515_intHandler( void )
+{
+    uint8_t intFlags = CAN_mcp2515_getInterruptFlags();
+
+    /* Error interrupts */
+
+    if ( intFlags & (bsMERRF | bsERRIF) ) {
+        if ( CAN_mcp2515_errorCallback ) {
+            CAN_mcp2515_errorCallback( CAN_MCP2515_ERROR_GENERAL );
+        }
+    }
+
+    /* RX interrupts (if there is a buffer) */
+
+    if ( g_mcp2515_rxBuf != NULL ) {
+
+        /* RX buffer 1 */
+        if ( intFlags & bsRX1IF ) {
+
+            if ( CAN_mcp2515_rxCallback ) {
+
+                CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB1D0,
+                                      g_mcp2515_rxBuf,
+                                      g_mcp2515_rxBufSize );
+
+                /* TODO: Fill with actual ID data */
+                CAN_mcp2515_rxCallback( 0, false );
+            }
+        }
+
+        /* RX buffer 0 */
+        if ( intFlags & bsRX0IF ) {
+            if ( CAN_mcp2515_rxCallback ) {
+
+                CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB0D0,
+                                      g_mcp2515_rxBuf,
+                                      g_mcp2515_rxBufSize );
+
+                /* TODO: Fill with actual ID data */
+                CAN_mcp2515_rxCallback( 0, false );
+            }
+        }
+    }
+
+    /* Clear flags */
+
+    CAN_mcp2515_instBitModify( CAN_MCP2515_REG_CANINTF,
+                               intFlags,
+                               0 );
+}
+
+
 /*****************************************************************************/
 uint8_t
 CAN_mcp2515_readByte( uint8_t address )
@@ -72,11 +135,38 @@ CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
 ******************************************************************************/
 /*****************************************************************************/
 void
-CAN_mcp2515_init( void )
+CAN_mcp2515_init( uint8_t* rxBuf,
+                  size_t   rxBufSize,
+                  CAN_Mcp2515_RxCallback_t rxCallback,
+                  CAN_Mcp2515_ErrorCallback_t errorCallback )
 {
+    uint8_t intEn;
+
     SPI_init();
+
+    /* Disable unused pins */
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
     CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
+
+    /* Enable interrupts */
+    GPIO_configInput( GPIO_ID_CAN_INT,
+                      GPIO_PULL_NONE,
+                      GPIO_INT_RISING,
+                      CAN_mcp2515_intHandler );
+
+    g_mcp2515_rxBuf = rxBuf;
+    g_mcp2515_rxBufSize = MIN( rxBufSize, 8 ); /* 8 is max amount of data that can be read */
+
+    CAN_mcp2515_rxCallback = rxCallback;
+    CAN_mcp2515_errorCallback = errorCallback;
+
+    intEn  = (bsMERRF|bsERRIF); /* enable error interrupts */
+
+    if ( rxBuf != NULL ) {
+        intEn |= (bsRX1IF|bsRX0IF); /* enable RX interrupts if buffer provided */
+    }
+
+    CAN_mcp2515_enableInterrupts( intEn );
 }
 
 

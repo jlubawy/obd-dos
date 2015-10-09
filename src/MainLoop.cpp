@@ -21,6 +21,7 @@
 
 #include "GPS.h"
 #include "LED.h"
+#include "Log.h"
 #include "NVM.h"
 #include "OBD.h"
 #include "Serial.h"
@@ -53,13 +54,10 @@ static GPS_UtcDateTime_t g_sampledDateTime;
 static GPS_TransitData_t g_sampledTransitData;
 
 /*****************************************************************************/
-static OBD_Data_t g_sampledObdData;
+static OBD_SpeedKph_t g_sampledVehicleSpeedKph;
 
 /*****************************************************************************/
 static unsigned long g_timer_sample_count_ms = 0;
-
-/*****************************************************************************/
-static unsigned long g_timer_sample_delta_ms = 0;
 
 /*****************************************************************************/
 static unsigned long g_timer_sample_rate_ms = 0;
@@ -99,7 +97,7 @@ setup( void )
     if ( NVM_getResetReason( &resetReason ) ) {
         /* Valid reset reason */
         if ( NVM_RESET_REASON_NORMAL != resetReason ) {
-            Serial_printf( "Reset Reason: 0x%02X\n", resetReason );
+            Log_printf( "Reset Reason: 0x%02X\n", resetReason );
         }
     } else {
         /* Invalid reset reason, initialize it */
@@ -117,15 +115,14 @@ loop( void )
 {
     bool gpsDateTimeValid;
     bool gpsTransitDataValid;
-    bool obdDataValid;
+    bool obdSpeedKphValid;
 
     /* Update GPS & OBD data drivers */
     GPS_update();
     OBD_update();
 
     /* Wait for valid date & time */
-    if ( millis() - g_timer_sample_count_ms > g_timer_sample_rate_ms ) {
-        g_timer_sample_delta_ms = (millis() - g_timer_sample_count_ms) - g_timer_sample_rate_ms;
+    if ( millis() - g_timer_sample_count_ms >= g_timer_sample_rate_ms ) {
 
         /* Blink status LED for 100ms */
         LED_blink( LED_ID_STATUS, 100 );
@@ -138,37 +135,35 @@ loop( void )
                                     ? TIMER_GPS_LOCKED_SAMPLE_RATE_MS
                                     : TIMER_GPS_NOT_LOCKED_SAMPLE_RATE_MS;
 
-        /* Adjust the sample rate based after accounting for delays */
-        g_timer_sample_rate_ms -= g_timer_sample_delta_ms;
-
         /* Get GPS transit data */
         gpsTransitDataValid = GPS_getTransitData( &g_sampledTransitData );
 
-        /* Get OBD data */
-        obdDataValid = OBD_getData( &g_sampledObdData );
+        /* Get OBD vehicle speed KPH */
+        obdSpeedKphValid = OBD_getVehicleSpeed( &g_sampledVehicleSpeedKph );
 
         /* Output sampled data to serial port */
         Serial_printf(
+            /* 0  1    2    3    4    5    6    7        8  9  A  B  C  D  E */
             "%lu,%u,%04u-%02u-%02uT%02u:%02u:%02uZ00:00,%u,%f,%f,%f,%f,%u,%f\n",
 
-            GPS_getNumOfSatellites(),
+            GPS_getNumOfSatellites(),      /* 0 */
 
-            gpsDateTimeValid,
-            g_sampledDateTime.year,
-            g_sampledDateTime.month,
-            g_sampledDateTime.day,
-            g_sampledDateTime.hour,
-            g_sampledDateTime.minute,
-            g_sampledDateTime.second,
+            gpsDateTimeValid,              /* 1 */
+            g_sampledDateTime.year,        /* 2 */
+            g_sampledDateTime.month,       /* 3 */
+            g_sampledDateTime.day,         /* 4 */
+            g_sampledDateTime.hour,        /* 5 */
+            g_sampledDateTime.minute,      /* 6 */
+            g_sampledDateTime.second,      /* 7 */
 
-            gpsTransitDataValid,
-            g_sampledTransitData.lat,
-            g_sampledTransitData.lng,
-            g_sampledTransitData.speedMph,
-            g_sampledTransitData.course,
+            gpsTransitDataValid,           /* 8 */
+            g_sampledTransitData.lat,      /* 9 */
+            g_sampledTransitData.lng,      /* A */
+            g_sampledTransitData.speedMph, /* B */
+            g_sampledTransitData.course,   /* C */
 
-            obdDataValid,
-            g_sampledObdData.speedMph
+            obdSpeedKphValid,              /* D */
+            g_sampledVehicleSpeedKph       /* E */
         );
 
         g_timer_sample_count_ms = millis();
