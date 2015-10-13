@@ -649,6 +649,10 @@ CAN_mcp2515_init( uint8_t* rxBuf,
                   CAN_Mcp2515_ErrorCallback_t errorCallback );
 
 /*****************************************************************************/
+void
+CAN_mcp2515_reset( void );
+
+/*****************************************************************************/
 bool
 CAN_mcp2515_sendStandardDataFrame( uint16_t id, void* buf, size_t size );
 
@@ -665,8 +669,16 @@ void
 CAN_mcp2515_instRead( uint8_t address, uint8_t* buffer, size_t length );
 
 /*****************************************************************************/
+uint8_t
+CAN_mcp2515_readByte( uint8_t address );
+
+/*****************************************************************************/
 void
 CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length );
+
+/*****************************************************************************/
+void
+CAN_mcp2515_writeByte( uint8_t address, uint8_t data );
 
 /*****************************************************************************/
 void

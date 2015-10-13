@@ -47,7 +47,7 @@ static void
 CAN_mcp2515_rxCallback( uint32_t id, bool isExtended )
 {
     if ( CAN_rxCallback ) {
-        CAN_rxCallback( 0, false );
+        CAN_rxCallback( id, isExtended );
     }
 }
 
@@ -56,6 +56,7 @@ CAN_mcp2515_rxCallback( uint32_t id, bool isExtended )
 static void
 CAN_mcp2515_errorCallback( CAN_Mcp2515_Error_t errorType )
 {
+    /* TODO: interpret error code */
     if ( CAN_errorCallback ) {
         CAN_errorCallback( CAN_ERROR_SUCCESS );
     }
@@ -87,7 +88,7 @@ void
 CAN_reset( void )
 {
     /* Reset and re-init the CAN controller hardware */
-    CAN_mcp2515_instReset();
+    CAN_mcp2515_reset();
 }
 
 
@@ -104,5 +105,17 @@ bool
 CAN_sendExtendedDataFrame( uint32_t id, void* buf, size_t size )
 {
     return CAN_mcp2515_sendExtendedDataFrame( id, buf, size );
+}
+
+
+/*****************************************************************************/
+void
+CAN_setOperatingMode( CAN_OperatingMode_t mode )
+{
+    if ( mode == CAN_OPMODE_NORMAL ) {
+        CAN_mcp2515_setOperatingMode( CAN_MCP2515_OPMODE_NORMAL );
+    } else if ( mode == CAN_OPMODE_LOOPBACK ) {
+        CAN_mcp2515_setOperatingMode( CAN_MCP2515_OPMODE_LOOPBACK );
+    }
 }
 

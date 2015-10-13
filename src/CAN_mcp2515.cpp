@@ -58,9 +58,12 @@ static size_t g_mcp2515_rxBufSize;
                                 Local Functions
 ******************************************************************************/
 /*****************************************************************************/
-void
+static void
 CAN_mcp2515_intHandler( void )
 {
+    bool isExtended;
+    uint32_t id;
+    uint32_t eid = 0;
     uint8_t intFlags = CAN_mcp2515_getInterruptFlags();
 
     /* Error interrupts */
@@ -71,40 +74,58 @@ CAN_mcp2515_intHandler( void )
         }
     }
 
-    /* RX interrupts (if there is a buffer) */
+    /* RX interrupts (if there is a buffer and callback available) */
 
-    if ( g_mcp2515_rxBuf != NULL ) {
+    if ( (g_mcp2515_rxBuf != NULL) && (CAN_mcp2515_rxCallback != NULL) ) {
 
         /* RX buffer 1 */
         if ( intFlags & bsRX1IF ) {
 
-            if ( CAN_mcp2515_rxCallback ) {
+            CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB1D0,
+                                  g_mcp2515_rxBuf,
+                                  g_mcp2515_rxBufSize );
 
-                CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB1D0,
-                                      g_mcp2515_rxBuf,
-                                      g_mcp2515_rxBufSize );
+            id = (((CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1SIDH ) & bmSID10_3) >> bsSID3) << 3)
+               | (((CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1SIDL ) & bmSID2_0 ) >> bsSID0) << 0);
 
-                /* TODO: Fill with actual ID data */
-                CAN_mcp2515_rxCallback( 0, false );
+            /* Is extended address? */
+            isExtended = ( (bmIDE & CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1SIDL )) == bmIDE );
+            if ( isExtended ) {
+                eid = (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1SIDL )) & bmEID17_16) >> bsEID16) << 16)
+                    | (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1EID8 )) & bmEID15_8 ) >> bsEID8 ) <<  8)
+                    | (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB1EID0 )) & bmEID7_0  ) >> bsEID0 ) <<  0);
             }
+
+            id = (eid << 11) | id;
+
+            CAN_mcp2515_rxCallback( id, isExtended );
         }
 
         /* RX buffer 0 */
         if ( intFlags & bsRX0IF ) {
-            if ( CAN_mcp2515_rxCallback ) {
 
-                CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB0D0,
-                                      g_mcp2515_rxBuf,
-                                      g_mcp2515_rxBufSize );
+            CAN_mcp2515_instRead( CAN_MCP2515_REG_RXB0D0,
+                                  g_mcp2515_rxBuf,
+                                  g_mcp2515_rxBufSize );
 
-                /* TODO: Fill with actual ID data */
-                CAN_mcp2515_rxCallback( 0, false );
+            id = (((CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0SIDH ) & bmSID10_3) >> bsSID3) << 3)
+               | (((CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0SIDL ) & bmSID2_0 ) >> bsSID0) << 0);
+
+            /* Is extended address? */
+            isExtended = ( (bmIDE & CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0SIDL )) == bmIDE );
+            if ( isExtended ) {
+                eid = (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0SIDL )) & bmEID17_16) >> bsEID16) << 16)
+                    | (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0EID8 )) & bmEID15_8 ) >> bsEID8 ) <<  8)
+                    | (((((uint32_t)CAN_mcp2515_readByte( CAN_MCP2515_REG_RXB0EID0 )) & bmEID7_0  ) >> bsEID0 ) <<  0);
             }
+
+            id = (eid << 11) | id;
+
+            CAN_mcp2515_rxCallback( id, isExtended );
         }
     }
 
     /* Clear flags */
-
     CAN_mcp2515_instBitModify( CAN_MCP2515_REG_CANINTF,
                                intFlags,
                                0 );
@@ -112,22 +133,24 @@ CAN_mcp2515_intHandler( void )
 
 
 /*****************************************************************************/
-uint8_t
-CAN_mcp2515_readByte( uint8_t address )
+static void
+CAN_mcp2515_registerInit( void )
 {
-    uint8_t data;
+    uint8_t intEn;
 
-    CAN_mcp2515_instRead( address, &data, sizeof(data) );
-    return data;
+    /* Disable unused pins */
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
+    CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
+
+    intEn  = (bsMERRF|bsERRIF); /* enable error interrupts */
+
+    if ( g_mcp2515_rxBuf != NULL ) {
+        intEn |= (bsRX1IF|bsRX0IF); /* enable RX interrupts if buffer provided */
+    }
+
+    CAN_mcp2515_enableInterrupts( intEn );
 }
 
-
-/*****************************************************************************/
-void
-CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
-{
-    CAN_mcp2515_instWrite( address, &data, sizeof(data) );
-}
 
 
 /******************************************************************************
@@ -140,13 +163,7 @@ CAN_mcp2515_init( uint8_t* rxBuf,
                   CAN_Mcp2515_RxCallback_t rxCallback,
                   CAN_Mcp2515_ErrorCallback_t errorCallback )
 {
-    uint8_t intEn;
-
     SPI_init();
-
-    /* Disable unused pins */
-    CAN_mcp2515_writeByte( CAN_MCP2515_REG_BFPCTRL, 0 );
-    CAN_mcp2515_writeByte( CAN_MCP2515_REG_TXRTSCTRL, 0 );
 
     /* Enable interrupts */
     GPIO_configInput( GPIO_ID_CAN_INT,
@@ -160,13 +177,16 @@ CAN_mcp2515_init( uint8_t* rxBuf,
     CAN_mcp2515_rxCallback = rxCallback;
     CAN_mcp2515_errorCallback = errorCallback;
 
-    intEn  = (bsMERRF|bsERRIF); /* enable error interrupts */
+    CAN_mcp2515_reset();
+}
 
-    if ( rxBuf != NULL ) {
-        intEn |= (bsRX1IF|bsRX0IF); /* enable RX interrupts if buffer provided */
-    }
 
-    CAN_mcp2515_enableInterrupts( intEn );
+/*****************************************************************************/
+void
+CAN_mcp2515_reset( void )
+{
+    CAN_mcp2515_instReset();
+    CAN_mcp2515_registerInit();
 }
 
 
@@ -365,6 +385,17 @@ CAN_mcp2515_instRead( uint8_t address, uint8_t* buffer, size_t length )
 
 
 /*****************************************************************************/
+uint8_t
+CAN_mcp2515_readByte( uint8_t address )
+{
+    uint8_t data;
+
+    CAN_mcp2515_instRead( address, &data, sizeof(data) );
+    return data;
+}
+
+
+/*****************************************************************************/
 void
 CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length )
 {
@@ -379,6 +410,14 @@ CAN_mcp2515_instWrite( uint8_t address, uint8_t* buffer, size_t length )
     }
 
     CAN_MCP2515_INST_STOP();
+}
+
+
+/*****************************************************************************/
+void
+CAN_mcp2515_writeByte( uint8_t address, uint8_t data )
+{
+    CAN_mcp2515_instWrite( address, &data, sizeof(data) );
 }
 
 

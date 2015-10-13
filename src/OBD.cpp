@@ -39,9 +39,13 @@
 
 /*****************************************************************************/
 #define OBD_11BIT_FUNC_BCAST_ADDR  (0x7DF)
+#define OBD_11BIT_DIAG_TOOL_ADDR   (0x7E8)
 
 /*****************************************************************************/
 #define OBD_29BIT_FUNC_BCAST_ID  (0x18DB33F1)
+
+/*****************************************************************************/
+#define OBD_29BIT_DIAG_TOOL_ADDR  (0xF1)
 
 /*****************************************************************************/
 #define OBD_DLC_NIBBLE  (8)  /* field must always be 8 for OBD */
@@ -63,8 +67,11 @@
 ******************************************************************************/
 /*****************************************************************************/
 #define OBD_BUILD_29BIT_PHYS_BCAST_ID( _dest )  ((0x18DA00F1)|((_dest) << 8))
-#define OBD_IS_29BIT_PHYS_REPLY( _reply )       ((0x18DA == (((_reply) >> 16) & 0xFFFF)) && (0xF1 == (((_reply) >> 8) & 0xFF)))
-#define OBD_GET_29BIT_PHYS_BCAST_SRC( _reply )  (((_reply) >> 8) & 0xFF)
+#define OBD_IS_29BIT_FUNC_ADDR( _addr )        ((((_addr) >> 16) & 0xFFFF) == 0x18DB)
+#define OBD_IS_29BIT_PHYS_ADDR( _addr )        ((((_addr) >> 16) & 0xFFFF) == 0x18DA)
+#define OBD_IS_29BIT_VALID_ADDR( _addr )       (OBD_IS_29BIT_FUNC_ADDR( _addr ) || OBD_IS_29BIT_PHYS_ADDR( _addr ))
+#define OBD_GET_29BIT_SOURCE( _addr )           ((_addr) & 0xFF)
+#define OBD_GET_29BIT_TARGET( _addr )           (((_addr) >> 8) & 0xFF)
 
 /*****************************************************************************/
 #define OBD_GET_FRAME_TYPE( _byte0 )  ((_byte0) & 0xF)
@@ -78,7 +85,6 @@ typedef enum {
     OBD_STATE_IDLE,
     OBD_STATE_DATA_REQUESTED,
     OBD_STATE_DATA_RECEIVED,
-    OBD_STATE_DATA_READY,
 
     /* Only used by server */
     OBD_STATE_DATA_RESPONDING,
@@ -134,12 +140,27 @@ static uint8_t g_OBD_dataRequestErrors = 0;
                                 Local Functions
 ******************************************************************************/
 /*****************************************************************************/
+static void
+OBD_reset( void )
+{
+    Log_errorf( "Resetting CAN controller\n", NULL );
+
+    g_OBD_dataRequestErrors = 0;
+
+    CAN_reset();
+
+    /* Enable loopback mode for testing */
+    CAN_setOperatingMode( CAN_OPMODE_LOOPBACK );
+}
+
+
+/*****************************************************************************/
 static bool
 OBD_sendPidRequest( OBD_Mode_t mode,
                     OBD_Pid_t  pid )
 {
     bool success;
-    const uint8_t size = 2;
+    const uint8_t size = 8;
 
     uint8_t sreg = CRITICAL_SECTION_ENTER();
 
@@ -184,6 +205,89 @@ OBD_requestVin( void )
 
 /*****************************************************************************/
 static void
+OBD_clientParseResponse( void )
+{
+    const uint8_t size = 8;
+
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+
+    /* Handle response */
+    switch ( g_OBD_rxDataBuffer[1] ) {
+
+        /* Mode 01 Response */
+        case OBD_MODE_01_SHOW_CURRENT_DATA: {
+
+            /* Vehicle Speed PID */
+            if ( g_OBD_rxDataBuffer[2] == OBD_MODE_01_PID_VEHICLE_SPEED ) {
+                g_OBD_vehicleSpeedKphValid = true;
+                g_OBD_vehicleSpeedKph = g_OBD_rxDataBuffer[3];
+            }
+
+            break;
+        }
+
+        default: {
+            /* do nothing */
+            break;
+        }
+    }
+
+    /* return to idle state */
+    g_OBD_state_client = OBD_STATE_IDLE;
+
+    CRITICAL_SECTION_EXIT( sreg );
+}
+
+
+/*****************************************************************************/
+static void
+OBD_serverRespond( void )
+{
+    const uint8_t size = 8;
+
+    uint8_t sreg = CRITICAL_SECTION_ENTER();
+
+    memset( g_OBD_txDataBuffer, 0, sizeof(g_OBD_txDataBuffer) );
+
+    /* Handle requests */
+    switch ( g_OBD_rxDataBuffer[1] ) {
+
+        /* Mode 01 Requests */
+        case OBD_MODE_01_SHOW_CURRENT_DATA: {
+
+            /* Vehicle Speed PID */
+            if ( g_OBD_rxDataBuffer[2] == OBD_MODE_01_PID_VEHICLE_SPEED ) {
+
+                /* TODO: Check data byte 1 for correct response */
+                g_OBD_txDataBuffer[0] = (size << 4) | (OBD_FRAME_TYPE_SINGLE);
+                g_OBD_txDataBuffer[1] = OBD_MODE_01_SHOW_CURRENT_DATA;
+                g_OBD_txDataBuffer[2] = OBD_MODE_01_PID_VEHICLE_SPEED;
+                g_OBD_txDataBuffer[3] = 123;  /* arbitrary speed (0-255) */
+
+                /* Send response to diagnostic tool address */
+                CAN_sendStandardDataFrame( OBD_11BIT_DIAG_TOOL_ADDR,
+                                           g_OBD_txDataBuffer,
+                                           sizeof(g_OBD_txDataBuffer) );
+            }
+
+            break;
+        }
+
+        default: {
+            /* do nothing */
+            break;
+        }
+    }
+
+    /* return to idle state */
+    g_OBD_state_server = OBD_STATE_IDLE;
+
+    CRITICAL_SECTION_EXIT( sreg );
+}
+
+
+/*****************************************************************************/
+static void
 OBD_clientUpdate( void )
 {
     /* OBD client state machine */
@@ -203,9 +307,7 @@ OBD_clientUpdate( void )
                     Log_errorf( "OBD_requestVehicleSpeed() failed %u times\n", g_OBD_dataRequestErrors );
 
                     if ( g_OBD_dataRequestErrors >= OBD_MAX_NUM_DATA_REQUEST_ERRORS ) {
-                        Log_errorf( "Resetting CAN controller\n", NULL );
-                        CAN_reset();
-                        g_OBD_dataRequestErrors = 0;
+                        OBD_reset();
                     }
                     return;
                 }
@@ -235,12 +337,7 @@ OBD_clientUpdate( void )
         }
 
         case OBD_STATE_DATA_RECEIVED: {
-
-            break;
-        }
-
-        case OBD_STATE_DATA_READY: {
-
+            OBD_clientParseResponse();
             break;
         }
 
@@ -269,19 +366,14 @@ OBD_serverUpdate( void )
             break;
         }
 
-        case OBD_STATE_DATA_RECEIVED: {
-
-            break;
-        }
-
         case OBD_STATE_DATA_RESPONDING: {
-
+            OBD_serverRespond();
             break;
         }
 
         /* invalid states - return to idle */
         case OBD_STATE_DATA_REQUESTED:
-        case OBD_STATE_DATA_READY:
+        case OBD_STATE_DATA_RECEIVED:
         default: {
             /* debug check since we should never get here */
             ASSERT( false );
@@ -297,7 +389,30 @@ OBD_serverUpdate( void )
 static void
 OBD_rxCallback( uint32_t id, bool isExtended )
 {
-    /* TODO: send to client or server handler based on ID */
+    if ( isExtended && OBD_IS_29BIT_VALID_ADDR( id ) ) {
+        /* Valid 29-bit extended address */
+
+        if ( OBD_GET_29BIT_TARGET( id ) == OBD_29BIT_DIAG_TOOL_ADDR ) {
+            /* If target is broadcast message route to server */
+            g_OBD_state_server = OBD_STATE_DATA_RECEIVED;
+
+        } else if ( OBD_GET_29BIT_TARGET( id ) == OBD_29BIT_DIAG_TOOL_ADDR ) {
+            /* If target is a diagnostic tool route to client*/
+            g_OBD_state_client = OBD_STATE_DATA_RECEIVED;
+        }
+
+    } else {
+        /* 11-bit standard addressing */
+
+        if ( id == OBD_11BIT_FUNC_BCAST_ADDR ) {
+            /* If target is broadcast message route to server */
+            g_OBD_state_server = OBD_STATE_DATA_RECEIVED;
+
+        } else {
+            /* If target is a diagnostic tool route to client*/
+            g_OBD_state_client = OBD_STATE_DATA_RECEIVED;
+        }
+    }
     return;
 }
 
@@ -327,6 +442,9 @@ OBD_init( void )
               sizeof(g_OBD_rxDataBuffer),
               OBD_rxCallback,
               OBD_errorCallback );
+
+    /* Enable loopback mode for testing */
+    CAN_setOperatingMode( CAN_OPMODE_LOOPBACK );
 }
 
 
@@ -343,6 +461,10 @@ OBD_update( void )
 bool
 OBD_getVehicleSpeed( OBD_SpeedKph_t* speedKph )
 {
+    bool wasValid = g_OBD_vehicleSpeedKphValid;
+    g_OBD_vehicleSpeedKphValid = false;
+
     *speedKph = g_OBD_vehicleSpeedKph;
-    return g_OBD_vehicleSpeedKphValid;
+
+    return wasValid;
 }
